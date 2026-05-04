@@ -1,0 +1,40 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#05050f"/>
+  <!-- Grid -->
+  <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+    <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.018)" stroke-width="1"/>
+  </pattern>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <!-- Ambient glow left -->
+  <ellipse cx="300" cy="250" rx="350" ry="300" fill="#3b82f6" fill-opacity="0.07"/>
+  <!-- Ambient glow right -->
+  <ellipse cx="900" cy="300" rx="280" ry="250" fill="#8b5cf6" fill-opacity="0.06"/>
+  <!-- Logo circle -->
+  <rect x="460" y="160" width="60" height="60" rx="16" fill="url(#logoGrad)"/>
+  <defs>
+    <linearGradient id="logoGrad" x1="460" y1="160" x2="520" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+  </defs>
+  <text x="490" y="202" font-family="system-ui,sans-serif" font-size="32" font-weight="900" fill="white" text-anchor="middle">B</text>
+  <!-- Title -->
+  <text x="600" y="310" font-family="system-ui,sans-serif" font-size="72" font-weight="900" fill="white" text-anchor="middle" letter-spacing="-2">BaseDEX</text>
+  <!-- Subtitle -->
+  <text x="600" y="370" font-family="system-ui,sans-serif" font-size="28" fill="#8890a8" text-anchor="middle">Perpetual Futures &amp; Spot DEX on Base Network</text>
+  <!-- Badges -->
+  <rect x="270" y="410" width="150" height="36" rx="18" fill="#3b82f6" fill-opacity="0.12" stroke="#3b82f6" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="345" y="433" font-family="system-ui,sans-serif" font-size="14" font-weight="700" fill="#60a5fa" text-anchor="middle">20� Leverage</text>
+  <rect x="440" y="410" width="130" height="36" rx="18" fill="#10b981" fill-opacity="0.12" stroke="#10b981" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="505" y="433" font-family="system-ui,sans-serif" font-size="14" font-weight="700" fill="#34d399" text-anchor="middle">No KYC</text>
+  <rect x="590" y="410" width="170" height="36" rx="18" fill="#8b5cf6" fill-opacity="0.12" stroke="#8b5cf6" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="675" y="433" font-family="system-ui,sans-serif" font-size="14" font-weight="700" fill="#a78bfa" text-anchor="middle">Self-Custody</text>
+  <rect x="780" y="410" width="150" height="36" rx="18" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="855" y="433" font-family="system-ui,sans-serif" font-size="14" font-weight="700" fill="#fbbf24" text-anchor="middle">Base Network</text>
+  <!-- URL -->
+  <text x="600" y="520" font-family="system-ui,sans-serif" font-size="20" fill="#2a2e48" text-anchor="middle">basedex.fi</text>
+</svg>

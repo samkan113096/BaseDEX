@@ -1,0 +1,67 @@
+# ============================================================
+# BaseDEX — Root .gitignore
+# ============================================================
+
+# ── Node / npm ───────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.yarn/
+.pnp.*
+
+# ── Environment files — NEVER commit secrets ─────────────────
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Keep .env.example files (safe to commit — no secrets)
+!.env.example
+
+# ── Frontend (Next.js) ───────────────────────────────────────
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel/
+frontend/next-env.d.ts
+frontend/*.tsbuildinfo
+
+# ── Backend ───────────────────────────────────────────────────
+backend/dist/
+backend/*.tsbuildinfo
+
+# ── Contracts (Foundry) ──────────────────────────────────────
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/dry-run/
+# Keep broadcast receipts (useful for tracking deployments)
+# Uncomment if you don't want them committed:
+# contracts/broadcast/
+
+# ── OS / IDE ─────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+
+# ── Logs ─────────────────────────────────────────────────────
+logs/
+*.log
+/var/log/
+
+# ── Keys & Credentials — HARD STOP ───────────────────────────
+*.pem
+*.p12
+*.key
+keystore/
+private-keys/
+mnemonic.txt

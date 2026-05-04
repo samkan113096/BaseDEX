@@ -1,0 +1,78 @@
+# ============================================================
+# BaseDEX — Netlify Deployment Configuration
+# Frontend: Next.js 16 on Netlify (via @netlify/plugin-nextjs)
+# ============================================================
+
+[build]
+  # Build from the frontend workspace
+  base    = "frontend"
+  command = "npm install && npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_VERSION  = "10"
+  # Disable Netlify's default Next.js detection — we use the plugin
+  NETLIFY_NEXT_PLUGIN_SKIP = "false"
+
+# ── Next.js SSR plugin ──────────────────────────────────────
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# ── Headers ─────────────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options         = "DENY"
+    X-Content-Type-Options  = "nosniff"
+    Referrer-Policy         = "origin-when-cross-origin"
+    Permissions-Policy      = "camera=(), microphone=(), geolocation=()"
+    X-DNS-Prefetch-Control  = "on"
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/site.webmanifest"
+  [headers.values]
+    Content-Type  = "application/manifest+json"
+    Cache-Control = "public, max-age=86400"
+
+# ── Redirects ────────────────────────────────────────────────
+[[redirects]]
+  from   = "/app"
+  to     = "/trade"
+  status = 301
+
+[[redirects]]
+  from   = "/sitemap.xml"
+  to     = "/sitemap.xml"
+  status = 200
+
+# ── Context overrides ────────────────────────────────────────
+# Production environment variables — set these in the Netlify dashboard
+# (do NOT hardcode secrets here — this file is committed to git)
+#
+# Required env vars to set in Netlify Dashboard → Site Settings → Environment Variables:
+#
+#  NEXT_PUBLIC_ENV                     = production
+#  NEXT_PUBLIC_API_URL                 = https://api.basedex.fi
+#  NEXT_PUBLIC_WS_URL                  = wss://api.basedex.fi/ws
+#  NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID = <get from cloud.walletconnect.com>
+#  NEXT_PUBLIC_BASE_RPC_URL            = https://mainnet.base.org
+#  NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL    = https://sepolia.base.org
+#  NEXT_PUBLIC_VAULT_ADDRESS           = <from deployment>
+#  NEXT_PUBLIC_SPOT_ENGINE_ADDRESS     = <from deployment>
+#  NEXT_PUBLIC_PERP_ENGINE_ADDRESS     = <from deployment>

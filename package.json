@@ -1,0 +1,21 @@
+{
+  "name": "base-dex",
+  "private": true,
+  "workspaces": ["frontend", "backend"],
+  "scripts": {
+    "dev":                 "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend":         "npm run dev --workspace=backend",
+    "dev:frontend":        "npm run dev --workspace=frontend",
+    "build":               "npm run build:backend && npm run build:frontend",
+    "build:backend":       "npm run build --workspace=backend",
+    "build:frontend":      "npm run build --workspace=frontend",
+    "start:backend":       "npm run start --workspace=backend",
+    "typecheck":           "npm run typecheck --workspace=backend; npm run typecheck --workspace=frontend",
+    "contracts:build":     "cd contracts && forge build",
+    "contracts:test":      "cd contracts && forge test -vv",
+    "contracts:coverage":  "cd contracts && forge coverage",
+    "contracts:deploy:testnet": "cd contracts && forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast --verify -vvvv",
+    "contracts:deploy:mainnet": "cd contracts && forge script script/DeployMainnet.s.sol --rpc-url base --broadcast --verify -vvvv",
+    "contracts:verify":    "cd contracts && forge verify-contract"
+  }
+}
