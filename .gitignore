@@ -65,3 +65,6 @@ logs/
 keystore/
 private-keys/
 mnemonic.txt
+
+# Local Netlify folder
+.netlify
