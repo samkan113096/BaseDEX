@@ -67,7 +67,7 @@ export function MarketStats() {
     : `$${n.toFixed(2)}`;
 
   return (
-    <div className="h-9 bg-[#09091a] border-b border-[#1a1a35] flex items-center px-4 gap-0 overflow-x-auto hide-scrollbar shrink-0">
+    <div className="h-11 bg-[#0b0b1e] border-b border-[#1a1a35] flex items-center px-4 gap-0 overflow-x-auto hide-scrollbar shrink-0">
 
       <Stat
         label="24h Change"
@@ -107,11 +107,11 @@ export function MarketStats() {
   );
 }
 
-function Stat({ label, value, valueClass = 'text-[#e8eaf0]' }: { label: string; value: string; valueClass?: string }) {
+function Stat({ label, value, valueClass = 'text-[#c8d0e0]' }: { label: string; value: string; valueClass?: string }) {
   return (
-    <div className="flex items-center gap-1.5 px-3 shrink-0 h-full">
-      <span className="text-[9px] text-[#2a2e48] uppercase tracking-[0.08em] font-semibold">{label}</span>
-      <span className={`text-[11px] font-semibold font-mono ${valueClass}`}>{value}</span>
+    <div className="flex flex-col justify-center px-3.5 shrink-0 h-full gap-0.5">
+      <span className="text-[9px] text-[#3a3e58] uppercase tracking-[0.1em] font-bold">{label}</span>
+      <span className={`text-[12px] font-semibold font-mono leading-none ${valueClass}`}>{value}</span>
     </div>
   );
 }

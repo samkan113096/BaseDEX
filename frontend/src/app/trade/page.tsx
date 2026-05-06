@@ -17,19 +17,18 @@ const TradingChart = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-full bg-[#09091a] flex items-center justify-center">
+      <div className="w-full h-full bg-[#07071a] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-[#1a1a35] border-t-blue-500 rounded-full animate-spin" />
-          <span className="text-[#4a5068] text-xs">Loading chart…</span>
+          <span className="text-[#4a5068] text-xs">Initializing chart…</span>
         </div>
       </div>
     ),
   }
 );
 
-/** Reads the ?market= query param and syncs it to the store */
 function MarketParamSync() {
-  const params = useSearchParams();
+  const params    = useSearchParams();
   const setMarket = useDEXStore(s => s.setMarket);
 
   useEffect(() => {
@@ -49,33 +48,40 @@ export default function TradePage() {
       <Suspense fallback={null}>
         <MarketParamSync />
       </Suspense>
+
+      {/* ── Top bar ──────────────────────────────────────────────────── */}
       <TradeHeader />
       <MarketStats />
 
+      {/* ── Main trading grid ────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden min-h-0">
 
-        {/* ── Left: Order Book ─────────────────────────────────────── */}
-        <aside className="w-[200px] xl:w-[220px] border-r border-[#1a1a35] flex flex-col shrink-0 bg-[#09091a]">
+        {/* Left: Order Book */}
+        <aside className="w-[200px] xl:w-[224px] border-r border-[#1a1a35] flex flex-col shrink-0 bg-[#09091a] overflow-hidden">
           <OrderBook />
         </aside>
 
-        {/* ── Center: Chart + Bottom Panel ─────────────────────────── */}
+        {/* Center: Chart + Bottom panel */}
         <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-          <div className="flex-1 min-h-0">
+          {/* Chart takes up remaining height above bottom panel */}
+          <div className="flex-1 min-h-0 overflow-hidden">
             <TradingChart />
           </div>
-          <div className="h-[200px] border-t border-[#1a1a35] shrink-0 bg-[#09091a]">
+          {/* Bottom panel: positions / open orders / trade history */}
+          <div className="h-[220px] border-t border-[#1a1a35] shrink-0 bg-[#09091a] overflow-hidden">
             <BottomPanel />
           </div>
         </div>
 
-        {/* ── Right: Order Form + Recent Trades ─────────────────────── */}
-        <aside className="w-[280px] xl:w-[300px] border-l border-[#1a1a35] flex flex-col shrink-0 bg-[#09091a]">
-          <div className="flex-1 overflow-y-auto border-b border-[#1a1a35] min-h-0 hide-scrollbar">
+        {/* Right: Order form + Recent trades */}
+        <aside className="w-[280px] xl:w-[308px] border-l border-[#1a1a35] flex flex-col shrink-0 bg-[#09091a] overflow-hidden">
+          {/* Order form — scrollable */}
+          <div className="flex-1 overflow-y-auto hide-scrollbar min-h-0">
             <OrderForm />
           </div>
-          <div className="h-[200px] shrink-0 flex flex-col">
-            <div className="px-3 h-9 flex items-center border-b border-[#1a1a35] shrink-0">
+          {/* Recent trades — fixed height at bottom */}
+          <div className="h-[196px] shrink-0 border-t border-[#1a1a35] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-3 h-9 border-b border-[#1a1a35] shrink-0">
               <span className="text-[10px] font-bold text-[#4a5068] uppercase tracking-widest">Recent Trades</span>
             </div>
             <div className="flex-1 overflow-hidden">
