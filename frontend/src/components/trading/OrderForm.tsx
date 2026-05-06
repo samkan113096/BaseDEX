@@ -45,8 +45,11 @@ export function OrderForm() {
     : null;
 
   const handlePct = useCallback((pct: number) => {
-    const balance = markPrice > 0 ? (2 * markPrice * pct) / 100 / (isPerp ? leverage : 1) / execPrice : 0;
-    setSize(balance > 0 ? balance.toFixed(isSmall ? 0 : 4) : '');
+    const refPrice = execPrice > 0 ? execPrice : markPrice;
+    if (!refPrice || !markPrice) return;
+    const balance = (2 * markPrice * pct) / 100 / (isPerp ? leverage : 1) / refPrice;
+    if (!isFinite(balance) || isNaN(balance) || balance <= 0) return;
+    setSize(balance.toFixed(isSmall ? 0 : 4));
   }, [markPrice, execPrice, leverage, isPerp, isSmall]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -107,18 +110,37 @@ export function OrderForm() {
 
       {/* ── Long / Short tabs ─────────────────────────────────── */}
       <div className="p-3 pb-2">
-        <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#060613] rounded-2xl border border-[#141430]">
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, padding:4, background:'#060613', borderRadius:16, border:'1px solid #141430' }}>
           {(['buy', 'sell'] as const).map(s => (
             <button
               key={s}
               onClick={() => setSide(s)}
-              className={`py-2.5 rounded-xl text-sm font-black transition-all duration-200 ${
-                side === s
-                  ? s === 'buy'
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
-                    : 'bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-500/25'
-                  : 'text-[#4a5068] hover:text-[#8890a8]'
-              }`}
+              style={side === s ? {
+                padding: '10px 0',
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 900,
+                color: '#fff',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all .2s',
+                background: s === 'buy'
+                  ? 'linear-gradient(to right, #10b981, #14b8a6)'
+                  : 'linear-gradient(to right, #ef4444, #f43f5e)',
+                boxShadow: s === 'buy'
+                  ? '0 4px 16px rgba(16,185,129,.3)'
+                  : '0 4px 16px rgba(239,68,68,.3)',
+              } : {
+                padding: '10px 0',
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 900,
+                color: '#4a5068',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all .2s',
+              }}
             >
               {s === 'buy' ? 'Long / Buy' : 'Short / Sell'}
             </button>
@@ -300,16 +322,28 @@ export function OrderForm() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-3.5 rounded-2xl font-black text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99] shadow-lg relative overflow-hidden group ${
-              isBuy
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-emerald-500/20'
-                : 'bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white shadow-red-500/20'
-            }`}
+            style={{
+              width: '100%',
+              padding: '14px 0',
+              borderRadius: 16,
+              fontWeight: 900,
+              fontSize: 14,
+              color: '#fff',
+              border: 'none',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.5 : 1,
+              background: isBuy
+                ? 'linear-gradient(to right, #10b981, #14b8a6)'
+                : 'linear-gradient(to right, #ef4444, #f43f5e)',
+              boxShadow: isBuy
+                ? '0 4px 20px rgba(16,185,129,.25)'
+                : '0 4px 20px rgba(239,68,68,.25)',
+              transition: 'all .2s',
+            }}
           >
-            <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
             {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                <span style={{ width:16, height:16, border:'2px solid rgba(255,255,255,.3)', borderTopColor:'#fff', borderRadius:'50%', display:'inline-block', animation:'spin 0.7s linear infinite' }} />
                 Placing order…
               </span>
             ) : (

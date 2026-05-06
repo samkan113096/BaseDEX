@@ -1,43 +1,70 @@
 'use client';
 
-import { WagmiProvider, http } from 'wagmi';
+import { WagmiProvider, http, createConfig } from 'wagmi';
 import { base, baseSepolia, sepolia } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RainbowKitProvider, getDefaultConfig, darkTheme } from '@rainbow-me/rainbowkit';
+import {
+  RainbowKitProvider,
+  connectorsForWallets,
+  darkTheme,
+} from '@rainbow-me/rainbowkit';
+import {
+  injectedWallet,
+  metaMaskWallet,
+  coinbaseWallet,
+  rainbowWallet,
+  walletConnectWallet,
+  rabbyWallet,
+  trustWallet,
+} from '@rainbow-me/rainbowkit/wallets';
 import '@rainbow-me/rainbowkit/styles.css';
 
-/**
- * Chain targeting:
- *   NEXT_PUBLIC_CHAIN_ID=8453      → Base mainnet  (production)
- *   NEXT_PUBLIC_CHAIN_ID=84532     → Base Sepolia  (testnet)
- *   NEXT_PUBLIC_CHAIN_ID=11155111  → Ethereum Sepolia (testnet, current default)
- *   unset in production            → Base mainnet
- *   unset in dev                   → Ethereum Sepolia
- */
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? '';
+const hasValidProjectId = projectId.length > 10 && projectId !== 'demo';
+
 const targetChainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID ?? 0);
 const isProduction  =
   process.env.NEXT_PUBLIC_ENV === 'production' || process.env.NODE_ENV === 'production';
 
-function resolveChainOrder() {
+function resolveChains() {
   if (targetChainId === 8453)     return [base, baseSepolia, sepolia] as const;
   if (targetChainId === 84532)    return [baseSepolia, base, sepolia] as const;
   if (targetChainId === 11155111) return [sepolia, baseSepolia, base] as const;
-  // Default
   return isProduction
     ? ([base, baseSepolia, sepolia] as const)
     : ([sepolia, baseSepolia, base] as const);
 }
 
-const chains = resolveChainOrder();
+const chains = resolveChains();
 
-const config = getDefaultConfig({
+/* Build wallet list — always include injected/MetaMask/Coinbase (no WC needed);
+   add WalletConnect-based wallets only when a real project ID is available. */
+const wallets = [
+  {
+    groupName: 'Popular',
+    wallets: [
+      injectedWallet,
+      metaMaskWallet,
+      coinbaseWallet,
+      rabbyWallet,
+      trustWallet,
+      ...(hasValidProjectId ? [rainbowWallet, walletConnectWallet] : []),
+    ],
+  },
+];
+
+const connectors = connectorsForWallets(wallets, {
   appName:   'BaseDEX',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? 'demo',
+  projectId: hasValidProjectId ? projectId : 'placeholder-no-wc',
+});
+
+const config = createConfig({
+  connectors,
   chains,
   transports: {
-    [base.id]:        http(process.env.NEXT_PUBLIC_BASE_RPC_URL),
-    [baseSepolia.id]: http(process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL),
-    [sepolia.id]:     http(process.env.NEXT_PUBLIC_ETH_SEPOLIA_RPC_URL),
+    [base.id]:        http(process.env.NEXT_PUBLIC_BASE_RPC_URL ?? 'https://mainnet.base.org'),
+    [baseSepolia.id]: http(process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL ?? 'https://sepolia.base.org'),
+    [sepolia.id]:     http(process.env.NEXT_PUBLIC_ETH_SEPOLIA_RPC_URL ?? 'https://rpc.sepolia.org'),
   },
   ssr: true,
 });
