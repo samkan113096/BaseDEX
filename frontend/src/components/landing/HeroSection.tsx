@@ -163,15 +163,21 @@ export function HeroSection() {
                   <span className="text-[10px] text-[#4a5068] px-2 py-0.5">15m</span>
                   <span className="text-[10px] text-[#4a5068] px-2 py-0.5">1h</span>
                 </div>
-                {/* Fake candle chart */}
+                {/* Deterministic candle chart — no Math.random() to avoid hydration mismatch */}
                 <div className="flex-1 flex items-end gap-[2px] pb-2">
-                  {[62,68,65,72,70,78,74,80,76,82,79,86,82,90,85,92,88,95,90,98,93,96,100,94,97,92,99,95,98,100].map((h, i) => {
+                  {[
+                    [62,8,4],[68,6,3],[65,10,5],[72,7,3],[70,9,4],[78,5,3],[74,8,4],
+                    [80,6,3],[76,9,4],[82,7,3],[79,8,4],[86,5,3],[82,9,4],[90,6,3],
+                    [85,8,4],[92,7,3],[88,9,4],[95,5,3],[90,8,4],[98,6,3],[93,9,4],
+                    [96,7,3],[100,5,3],[94,8,4],[97,6,3],[92,9,4],[99,5,3],[95,7,3],
+                    [98,8,4],[100,6,3],
+                  ].map(([h, wickTop, wickBot], i) => {
                     const isGreen = i % 3 !== 1;
                     return (
                       <div key={i} className="flex-1 flex flex-col items-center justify-end gap-[1px]">
-                        <div className="w-px rounded" style={{ height: `${Math.random() * 15 + 3}%`, background: isGreen ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)' }} />
+                        <div className="w-px rounded" style={{ height: `${wickTop}%`, background: isGreen ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)' }} />
                         <div className="w-full rounded-sm" style={{ height: `${h * 0.35}%`, background: isGreen ? 'rgba(16,185,129,0.65)' : 'rgba(239,68,68,0.65)' }} />
-                        <div className="w-px rounded" style={{ height: `${Math.random() * 8 + 2}%`, background: isGreen ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)' }} />
+                        <div className="w-px rounded" style={{ height: `${wickBot}%`, background: isGreen ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)' }} />
                       </div>
                     );
                   })}

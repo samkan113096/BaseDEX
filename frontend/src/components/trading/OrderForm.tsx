@@ -8,8 +8,11 @@ import { Info, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { apiPath } from '@/lib/api';
+import { parseUnits } from 'viem';
 
 const LEVERAGE_PRESETS = [1, 2, 3, 5, 10, 15, 20];
+// Contract maintenance margin = 5% (500 bps) — matches PerpEngine.LIQ_THRESHOLD
+const MAINTENANCE_MARGIN = 0.05;
 
 export function OrderForm() {
   const { address, isConnected } = useAccount();
@@ -32,11 +35,12 @@ export function OrderForm() {
   const sizeNum   = parseFloat(size) || 0;
   const notional  = sizeNum * execPrice;
   const marginReq = isPerp && leverage > 0 ? notional / leverage : notional;
-  const fee       = notional * 0.0005;
+  const fee       = notional * (orderType === 'market' ? 0.0006 : 0.0001);
+  // Liq. price matches PerpEngine on-chain formula (LIQ_THRESHOLD = 5%)
   const liqPrice  = isPerp && execPrice > 0 && leverage > 0
     ? side === 'buy'
-      ? execPrice * (1 - 0.95 / leverage)
-      : execPrice * (1 + 0.95 / leverage)
+      ? execPrice * (1 - (1 - MAINTENANCE_MARGIN) / leverage)
+      : execPrice * (1 + (1 - MAINTENANCE_MARGIN) / leverage)
     : 0;
 
   const pctOfMark = execPrice > 0 && markPrice > 0
@@ -57,17 +61,21 @@ export function OrderForm() {
 
     setLoading(true);
     try {
+      // Use viem's parseUnits for precision — avoids JS Number float rounding
+      const execPriceStr = (parseFloat(price) || markPrice).toFixed(isSmall ? 6 : 2);
+      const sizeStr      = sizeNum.toFixed(isSmall ? 4 : 6);
+
       const body = {
         marketId:  selectedMarket,
         trader:    address,
         side,
         type:      orderType,
-        price:     BigInt(Math.round((parseFloat(price) || markPrice) * 1e6)).toString(),
-        size:      BigInt(Math.round(sizeNum * 1e18)).toString(),
+        price:     parseUnits(execPriceStr, 6).toString(),   // micro-USD (1e6)
+        size:      parseUnits(sizeStr,      18).toString(),  // token atoms (1e18)
         leverage:  isPerp ? leverage : undefined,
-        nonce:     BigInt(Date.now()).toString(),
+        nonce:     Date.now().toString(),
         expiry:    Math.floor(Date.now() / 1000) + 3600,
-        signature: '0x' + '0'.repeat(130),
+        signature: '0x',  // off-chain order — on-chain settlement requires EIP-712 signing
       };
 
       const res  = await fetch(apiPath('/api/orders'), {
@@ -143,7 +151,7 @@ export function OrderForm() {
         <div className="ml-auto flex items-center gap-1 text-[10px] text-[#2a2e48]">
           <span className="font-semibold">Fee:</span>
           <span className={orderType === 'limit' ? 'text-emerald-400' : 'text-[#4a5068]'}>
-            {orderType === 'limit' ? '-0.02% rebate' : '0.05% taker'}
+            {orderType === 'limit' ? '-0.01% rebate' : '0.06% taker'}
           </span>
         </div>
       </div>
@@ -264,10 +272,10 @@ export function OrderForm() {
           )}
           <div className="border-t border-[#1a1a35] pt-1.5 mt-1">
             <SummaryRow
-              label={orderType === 'limit' ? 'Maker Rebate' : 'Taker Fee (0.05%)'}
+              label={orderType === 'limit' ? 'Maker Rebate (0.01%)' : 'Taker Fee (0.06%)'}
               value={fee > 0
                 ? orderType === 'limit'
-                  ? `+$${(notional * 0.0002).toFixed(4)}`
+                  ? `+$${fee.toFixed(4)}`
                   : `-$${fee.toFixed(4)}`
                 : '—'}
               valueClass={orderType === 'limit' ? 'text-emerald-400' : 'text-[#8890a8]'}

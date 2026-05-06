@@ -4,6 +4,13 @@ import Link from 'next/link';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useDEXStore } from '@/store/dex';
 import { TrendingUp, TrendingDown, ChevronDown, Layers } from 'lucide-react';
+import { TARGET_CHAIN_ID } from '@/lib/contracts';
+
+const CHAIN_LABEL: Record<number, { name: string; color: string }> = {
+  8453:     { name: 'Base',         color: 'text-blue-400' },
+  84532:    { name: 'Base Sepolia', color: 'text-violet-400' },
+  11155111: { name: 'ETH Sepolia',  color: 'text-amber-400' },
+};
 import { useState, useEffect, useRef } from 'react';
 
 export const MARKETS = [
@@ -41,6 +48,7 @@ export function TradeHeader() {
   const [flash, setFlash]             = useState<'up' | 'down' | null>(null);
   const dropRef = useRef<HTMLDivElement>(null);
 
+  const chain     = CHAIN_LABEL[TARGET_CHAIN_ID] ?? { name: `Chain ${TARGET_CHAIN_ID}`, color: 'text-[#4a5068]' };
   const current   = MARKETS.find(m => m.id === selectedMarket) ?? MARKETS[0];
   const priceInfo = prices[current.symbol];
   const price     = priceInfo?.price   ?? 0;
@@ -106,10 +114,10 @@ export function TradeHeader() {
 
         {showMarkets && (
           <div className="absolute top-full left-0 mt-1.5 w-64 bg-[#0d0d22] border border-[#1a1a35] rounded-xl shadow-2xl shadow-black/60 overflow-hidden z-50 animate-slide-up">
-            {/* Base network badge */}
+            {/* Chain badge */}
             <div className="flex items-center gap-2 px-3 py-2 border-b border-[#1a1a35] bg-[#09091a]">
-              <Layers size={11} className="text-blue-400" />
-              <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Base Network</span>
+              <Layers size={11} className={chain.color} />
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${chain.color}`}>{chain.name}</span>
               <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </div>
 
@@ -179,16 +187,16 @@ export function TradeHeader() {
       {/* Nav */}
       <nav className="hidden lg:flex items-center gap-0.5 ml-2">
         {[
-          { href: '/trade', label: 'Trade', active: true },
+          { href: '/trade',     label: 'Trade' },
           { href: '/#features', label: 'Features' },
-          { href: '/blog', label: 'Blog' },
-          { href: '/#faq', label: 'FAQ' },
+          { href: '/blog',      label: 'Blog' },
+          { href: '/#faq',      label: 'FAQ' },
         ].map(n => (
           <Link
             key={n.href}
             href={n.href}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              n.active
+              n.href === '/trade'
                 ? 'text-white bg-[#111128] border border-[#1a1a35]'
                 : 'text-[#4a5068] hover:text-white hover:bg-[#0d0d22]'
             }`}
@@ -197,6 +205,14 @@ export function TradeHeader() {
           </Link>
         ))}
       </nav>
+
+      {/* Testnet badge */}
+      {TARGET_CHAIN_ID !== 8453 && (
+        <div className={`hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-md border text-[9px] font-bold uppercase tracking-wider ${chain.color} border-current bg-current/5`}>
+          <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
+          Testnet
+        </div>
+      )}
 
       {/* Wallet */}
       <div className="ml-auto">

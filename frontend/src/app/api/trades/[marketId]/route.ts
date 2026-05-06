@@ -32,7 +32,8 @@ export async function GET(
   const market = MARKET_LIST.find(m => m.id === marketId);
   if (!market) return NextResponse.json({ error: 'Market not found' }, { status: 404 });
 
-  const limit  = Math.min(Number(req.nextUrl.searchParams.get('limit') ?? '50'), 200);
+  const limitRaw = Number(req.nextUrl.searchParams.get('limit') ?? '50');
+  const limit = Math.min(Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : 50, 200);
   const prices = await refreshPrices();
   const price  = prices[market.base]?.price ?? 1;
 

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { BLOG_POSTS } from '@/data/blog-posts';
-import { ArrowRight, Clock, Tag } from 'lucide-react';
+import { ArrowRight, Clock } from 'lucide-react';
 
 const CATEGORY_COLORS: Record<string, string> = {
   'Platform':       'bg-blue-500/15 text-blue-400',

@@ -1,7 +1,10 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useMarketDataSocket } from '@/hooks/useMarketData';
+import { useDEXStore } from '@/store/dex';
 import { TradeHeader }  from '@/components/layout/TradeHeader';
 import { MarketStats }  from '@/components/layout/MarketStats';
 import { OrderBook }    from '@/components/trading/OrderBook';
@@ -24,11 +27,28 @@ const TradingChart = dynamic(
   }
 );
 
+/** Reads the ?market= query param and syncs it to the store */
+function MarketParamSync() {
+  const params = useSearchParams();
+  const setMarket = useDEXStore(s => s.setMarket);
+
+  useEffect(() => {
+    const requested = params.get('market');
+    if (requested) setMarket(requested.toUpperCase());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
+}
+
 export default function TradePage() {
   useMarketDataSocket();
 
   return (
     <div className="flex flex-col h-screen bg-[#05050f] text-white overflow-hidden">
+      <Suspense fallback={null}>
+        <MarketParamSync />
+      </Suspense>
       <TradeHeader />
       <MarketStats />
 
@@ -44,17 +64,17 @@ export default function TradePage() {
           <div className="flex-1 min-h-0">
             <TradingChart />
           </div>
-          <div className="h-[180px] border-t border-[#1a1a35] shrink-0 bg-[#09091a]">
+          <div className="h-[200px] border-t border-[#1a1a35] shrink-0 bg-[#09091a]">
             <BottomPanel />
           </div>
         </div>
 
         {/* ── Right: Order Form + Recent Trades ─────────────────────── */}
         <aside className="w-[280px] xl:w-[300px] border-l border-[#1a1a35] flex flex-col shrink-0 bg-[#09091a]">
-          <div className="flex-1 overflow-y-auto border-b border-[#1a1a35] min-h-0">
+          <div className="flex-1 overflow-y-auto border-b border-[#1a1a35] min-h-0 hide-scrollbar">
             <OrderForm />
           </div>
-          <div className="h-[220px] shrink-0 flex flex-col">
+          <div className="h-[200px] shrink-0 flex flex-col">
             <div className="px-3 h-9 flex items-center border-b border-[#1a1a35] shrink-0">
               <span className="text-[10px] font-bold text-[#4a5068] uppercase tracking-widest">Recent Trades</span>
             </div>

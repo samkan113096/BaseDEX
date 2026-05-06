@@ -115,7 +115,7 @@ export const useDEXStore = create<DEXState>()(
     bids: [], asks: [], recentTrades: [], candles: [],
     positions: [], openOrders: [], tradeHistory: [],
 
-    setMarket: (selectedMarket) => set({ selectedMarket, bids: [], asks: [], recentTrades: [], candles: [] }),
+    setMarket: (selectedMarket) => set({ selectedMarket, bids: [], asks: [], recentTrades: [], candles: [], positions: [], openOrders: [], tradeHistory: [] }),
     setMode:   (selectedMode)   => set({ selectedMode }),
     setTimeframe: (selectedTimeframe) => set({ selectedTimeframe }),
 
@@ -144,7 +144,8 @@ export const useDEXStore = create<DEXState>()(
         const last = arr[arr.length - 1];
         if (last?.time === candle.time) arr[arr.length - 1] = candle;
         else arr.push(candle);
-        return { candles: arr };
+        // Cap at 500 candles to avoid unbounded growth
+        return { candles: arr.length > 500 ? arr.slice(-500) : arr };
       }),
 
     setPositions:   (positions)  => set({ positions }),

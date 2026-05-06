@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { placeOrder, openOrders } from '@/lib/dex-state';
+import { placeOrder, openOrders, MARKET_LIST } from '@/lib/dex-state';
 import { z } from 'zod';
 
 export const runtime = 'nodejs';
@@ -23,6 +23,12 @@ export async function POST(req: NextRequest) {
   const parsed = PlaceOrderBody.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
+  // Validate market exists
+  const marketExists = MARKET_LIST.some(m => m.id === parsed.data.marketId);
+  if (!marketExists) {
+    return NextResponse.json({ error: `Unknown market: ${parsed.data.marketId}` }, { status: 400 });
   }
 
   const order = placeOrder({

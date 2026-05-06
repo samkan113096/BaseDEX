@@ -6,22 +6,22 @@ const FOOTER_LINKS = {
     { label: 'Trade Spot',       href: '/trade' },
     { label: 'Trade Perpetuals', href: '/trade' },
     { label: 'Markets',          href: '/#markets' },
-    { label: 'Docs',             href: '#' },
-    { label: 'API',              href: '#' },
+    { label: 'Blog & Docs',      href: '/blog' },
+    { label: 'Contact',          href: '/#contact' },
   ],
   Company: [
     { label: 'About',      href: '/#about' },
     { label: 'Blog',       href: '/blog' },
     { label: 'Investors',  href: '/pitch-deck' },
     { label: 'Contact',    href: '/#contact' },
-    { label: 'Careers',    href: '#' },
+    { label: 'Audit',      href: '/audit' },
   ],
   Resources: [
     { label: 'Trading Guide',   href: '/blog/complete-basedex-trading-guide' },
     { label: 'FAQ',             href: '/#faq' },
     { label: 'Security Audit',  href: '/audit' },
-    { label: 'Smart Contracts', href: 'https://basescan.org' },
-    { label: 'Bug Bounty',      href: '#' },
+    { label: 'Smart Contracts', href: 'https://sepolia.etherscan.io/address/0xf6260C8f311497B9960A88d2a47a97aaA7d2234a' },
+    { label: 'Risk Disclosure', href: '/legal/risk' },
   ],
   Legal: [
     { label: 'Terms of Service', href: '/legal/terms' },
@@ -92,7 +92,7 @@ export function Footer() {
             © {new Date().getFullYear()} BaseDEX. All rights reserved. Built on Base.
           </p>
           <div className="flex items-center gap-4 text-[#3a3a5a] text-xs">
-            <span>Chain: Base (8453)</span>
+            <span>Testnet: ETH Sepolia (11155111)</span>
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               All systems operational
