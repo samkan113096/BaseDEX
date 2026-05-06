@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BaseDEX — Investor Pitch Deck</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --blue: #1a6fff;
+    --cyan: #00d4ff;
+    --violet: #7c3aed;
+    --emerald: #10b981;
+    --bg: #07071a;
+    --bg2: #0d0d28;
+    --border: #1e1e3a;
+    --text: #e8e8f8;
+    --muted: #6a6a9a;
+    --dim: #3a3a5a;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* Print button — hidden in PDF */
+  .print-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(7,7,26,0.95); border-bottom: 1px solid var(--border);
+    padding: 10px 24px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .print-bar .logo { display: flex; align-items: center; gap: 10px; }
+  .print-bar .logo img { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; }
+  .print-bar .logo span { font-weight: 800; font-size: 18px; color: #fff; }
+  .print-btn {
+    background: linear-gradient(135deg, var(--blue), var(--violet));
+    color: #fff; border: none; padding: 8px 20px; border-radius: 10px;
+    font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+  }
+  .print-btn:hover { opacity: 0.9; }
+  .print-btn svg { width: 14px; height: 14px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; padding-top: 60px; }
+
+  /* Cover slide */
+  .cover {
+    min-height: 480px;
+    background: linear-gradient(135deg, #08082a 0%, #0a0a20 50%, #07071a 100%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 60px;
+    margin: 32px 0 24px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(26,111,255,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -80px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(124,58,237,0.14) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cover-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+  .cover-logo img { width: 52px; height: 52px; border-radius: 14px; object-fit: cover; }
+  .cover-logo span { font-size: 28px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+  .cover-badge {
+    display: inline-block;
+    background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3);
+    color: #a78bfa; padding: 4px 14px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .cover h1 {
+    font-size: 52px; font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 16px;
+  }
+  .cover h1 span {
+    background: linear-gradient(135deg, #1a6fff, #00d4ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .cover p { font-size: 18px; color: var(--muted); max-width: 560px; margin-bottom: 32px; }
+  .cover-meta { display: flex; gap: 24px; flex-wrap: wrap; }
+  .cover-meta a, .cover-meta span { font-size: 13px; color: var(--dim); text-decoration: none; }
+  .cover-meta strong { color: var(--muted); }
+
+  /* KPI grid */
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0;
+  }
+  .kpi {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px; text-align: center;
+  }
+  .kpi .val { font-size: 28px; font-weight: 900; color: #fff; }
+  .kpi .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* Slides */
+  .slide {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px; margin-bottom: 16px;
+    display: flex; gap: 20px;
+    break-inside: avoid;
+  }
+  .slide-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 22px;
+  }
+  .slide-body { flex: 1; }
+  .slide-num { font-size: 10px; font-weight: 700; color: var(--dim); margin-bottom: 4px; letter-spacing: 0.5px; }
+  .slide-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 16px; }
+  .slide-body ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .slide-body li {
+    display: flex; gap: 10px;
+    font-size: 13.5px; color: var(--muted); line-height: 1.5;
+  }
+  .slide-body li .dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 7px;
+  }
+
+  /* Team */
+  .section-header {
+    text-align: center; margin: 48px 0 24px;
+  }
+  .section-badge {
+    display: inline-block;
+    background: rgba(26,111,255,0.12); border: 1px solid rgba(26,111,255,0.25);
+    color: #6ba3ff; padding: 4px 14px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .section-header h2 { font-size: 30px; font-weight: 900; color: #fff; margin-bottom: 8px; }
+  .section-header p { color: var(--muted); font-size: 15px; max-width: 500px; margin: 0 auto; }
+
+  .team-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px;
+  }
+  .team-card {
+    background: rgba(10,10,28,0.9); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px 16px; text-align: center;
+    break-inside: avoid;
+  }
+  .team-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    object-fit: cover; margin: 0 auto 12px;
+    border: 2px solid rgba(255,255,255,0.08);
+    display: block;
+  }
+  .team-name { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .team-role { font-size: 11px; font-weight: 600; margin-bottom: 10px; }
+  .team-bio { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+  /* CTA */
+  .cta {
+    background: linear-gradient(135deg, #08082a 0%, #0a0a20 100%);
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 48px; text-align: center; margin: 48px 0;
+  }
+  .cta h2 { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 8px; }
+  .cta p { color: var(--muted); margin-bottom: 24px; }
+  .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .cta-btn-primary {
+    background: linear-gradient(135deg, #1a6fff, #7c3aed);
+    color: #fff; padding: 12px 28px; border-radius: 12px; font-weight: 700;
+    font-size: 14px; text-decoration: none; display: inline-block;
+  }
+  .cta-btn-secondary {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); padding: 12px 28px; border-radius: 12px; font-weight: 700;
+    font-size: 14px; text-decoration: none; display: inline-block;
+  }
+  .disclaimer {
+    text-align: center; color: var(--dim); font-size: 11px;
+    padding: 24px 0 48px; border-top: 1px solid var(--border); margin-top: 24px;
+  }
+
+  /* Color helpers */
+  .c-red    { color: #f87171; }  .bg-red    { background: rgba(239,68,68,0.12); }
+  .c-blue   { color: #60a5fa; }  .bg-blue   { background: rgba(59,130,246,0.12); }
+  .c-green  { color: #34d399; }  .bg-green  { background: rgba(16,185,129,0.12); }
+  .c-violet { color: #a78bfa; }  .bg-violet { background: rgba(124,58,237,0.12); }
+  .c-amber  { color: #fbbf24; }  .bg-amber  { background: rgba(245,158,11,0.12); }
+  .c-cyan   { color: #22d3ee; }  .bg-cyan   { background: rgba(6,182,212,0.12); }
+  .c-pink   { color: #f472b6; }  .bg-pink   { background: rgba(244,114,182,0.12); }
+  .c-orange { color: #fb923c; }  .bg-orange { background: rgba(249,115,22,0.12); }
+  .c-teal   { color: #2dd4bf; }  .bg-teal   { background: rgba(20,184,166,0.12); }
+  .grad-blue   { background: linear-gradient(135deg,#1a6fff,#00d4ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .grad-violet { background: linear-gradient(135deg,#7c3aed,#ec4899); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .grad-green  { background: linear-gradient(135deg,#10b981,#14b8a6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .grad-amber  { background: linear-gradient(135deg,#f59e0b,#f97316); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+  @media print {
+    .print-bar { display: none; }
+    .container { padding-top: 0; }
+    body { background: #fff; color: #111; }
+    .cover, .slide, .team-card, .kpi, .cta {
+      background: #fff !important; border-color: #ddd !important;
+    }
+    .slide-title, .cover h1, .team-name, h2 { color: #111 !important; }
+    .slide-body li, .team-bio, .cover p, .cta p, .kpi .sub, .section-header p { color: #444 !important; }
+    .cover::before, .cover::after { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Floating print bar -->
+<div class="print-bar">
+  <div class="logo">
+    <img src="../../frontend/public/images/logo-icon.png" alt="BaseDEX" onerror="this.style.display='none'" />
+    <span>BaseDEX</span>
+  </div>
+  <button class="print-btn" onclick="window.print()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Save as PDF
+  </button>
+</div>
+
+<div class="container">
+
+  <!-- Cover -->
+  <div class="cover">
+    <div class="cover-logo">
+      <img src="../../frontend/public/images/logo-icon.png" alt="BaseDEX" onerror="this.style.display='none'" />
+      <span>BaseDEX</span>
+    </div>
+    <div class="cover-badge">Confidential · May 2026</div>
+    <h1>Trade Everything.<br /><span>Own Everything.</span></h1>
+    <p>The institutional-grade perpetual futures & spot DEX natively built on Base network. First-mover CLOB on the fastest-growing L2.</p>
+    <div class="cover-meta">
+      <span><strong>Website:</strong> basedex.fi</span>
+      <span><strong>Twitter:</strong> @BaseDEXfi</span>
+      <span><strong>Telegram:</strong> t.me/BaseDEXOfficial</span>
+      <span><strong>Email:</strong> founders@basedex.fi</span>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi"><div class="val">23</div><div class="sub">Markets at Launch · 11 Perps + 12 Spot</div></div>
+    <div class="kpi"><div class="val">20×</div><div class="sub">Max Leverage · Perpetual Futures</div></div>
+    <div class="kpi"><div class="val">$3.2T</div><div class="sub">Monthly Derivatives Market Size</div></div>
+    <div class="kpi"><div class="val">+118%</div><div class="sub">DeFi Derivatives YoY Growth</div></div>
+    <div class="kpi"><div class="val">40M+</div><div class="sub">Base Wallet Ecosystem</div></div>
+    <div class="kpi"><div class="val">&lt;200ms</div><div class="sub">Order Matching Speed</div></div>
+  </div>
+
+  <!-- Slides -->
+
+  <div class="slide">
+    <div class="slide-icon bg-red"><span>📉</span></div>
+    <div class="slide-body">
+      <div class="slide-num">01</div>
+      <div class="slide-title">The Problem</div>
+      <ul>
+        <li><span class="dot" style="background:#f87171"></span>$45B+ daily volume is leaving DeFi for CeFi — because DeFi is broken.</li>
+        <li><span class="dot" style="background:#f87171"></span>Ethereum mainnet gas fees make small trades uneconomical ($10–50 per trade).</li>
+        <li><span class="dot" style="background:#f87171"></span>No compelling Base-native derivative protocol despite Base's 40M+ active users.</li>
+        <li><span class="dot" style="background:#f87171"></span>78% of crypto derivatives volume flows through Binance, Bybit, OKX — centralized & KYC-heavy.</li>
+        <li><span class="dot" style="background:#f87171"></span>Existing perp DEXs require complex multi-step onboarding and suffer from poor UX.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-icon bg-blue"><span>⚡</span></div>
+    <div class="slide-body">
+      <div class="slide-num">02</div>
+      <div class="slide-title">The Solution</div>
+      <ul>
+        <li><span class="dot" style="background:#60a5fa"></span>Sub-200ms order matching via off-chain CLOB engine with on-chain settlement on Base.</li>
+        <li><span class="dot" style="background:#60a5fa"></span>Non-custodial, no KYC — connect wallet, trade immediately. Self-sovereign funds.</li>
+        <li><span class="dot" style="background:#60a5fa"></span>Audited smart contracts — 10 findings resolved, zero critical findings in production.</li>
+        <li><span class="dot" style="background:#60a5fa"></span>Base-native — tap into Coinbase's 40M+ wallet ecosystem and distribution network.</li>
+        <li><span class="dot" style="background:#60a5fa"></span>11 perpetual markets + 12 spot pairs at launch. Arbitrum cross-chain in Q3 2026.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-icon bg-green"><span>📊</span></div>
+    <div class="slide-body">
+      <div class="slide-num">03</div>
+      <div class="slide-title">Market Opportunity</div>
+      <ul>
+        <li><span class="dot" style="background:#34d399"></span>Global crypto derivatives volume: $3.2 trillion/month (+41% YoY).</li>
+        <li><span class="dot" style="background:#34d399"></span>DeFi derivatives share: $85B/month (+118% YoY) — fastest-growing segment.</li>
+        <li><span class="dot" style="background:#34d399"></span>Base network TVL: $4.2B and growing as Coinbase drives institutional adoption.</li>
+        <li><span class="dot" style="background:#34d399"></span>SAM: $12B/month in DeFi perp DEX volume — capturing 1% = $120M/month GMV.</li>
+        <li><span class="dot" style="background:#34d399"></span>Revenue at 0.06% taker fee: $72M/year at 1% market share. Path to profitability clear.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-icon bg-violet"><span>🛡</span></div>
+    <div class="slide-body">
+      <div class="slide-num">04</div>
+      <div class="slide-title">Competitive Advantage</div>
+      <ul>
+        <li><span class="dot" style="background:#a78bfa"></span>Only institutional-grade CLOB (Central Limit Order Book) DEX on Base mainnet.</li>
+        <li><span class="dot" style="background:#a78bfa"></span>Price-time priority matching — same execution model as CME and NYSE.</li>
+        <li><span class="dot" style="background:#a78bfa"></span>Real-time WebSocket feeds with sub-100ms latency to traders.</li>
+        <li><span class="dot" style="background:#a78bfa"></span>Gas-optimized contracts with SafeERC20, ReentrancyGuard, and EIP-712 signatures.</li>
+        <li><span class="dot" style="background:#a78bfa"></span>Full order book depth (bids + asks) versus AMM-based competitors with no book.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-icon bg-amber"><span>💰</span></div>
+    <div class="slide-body">
+      <div class="slide-num">05</div>
+      <div class="slide-title">Business Model</div>
+      <ul>
+        <li><span class="dot" style="background:#fbbf24"></span>Taker fee: 0.06% of notional — standard for perp DEXs, competitive with Hyperliquid.</li>
+        <li><span class="dot" style="background:#fbbf24"></span>Maker rebate: −0.01% — incentivizes market makers to provide deep liquidity.</li>
+        <li><span class="dot" style="background:#fbbf24"></span>Protocol fee split: 50% to protocol treasury, 50% to liquidity providers.</li>
+        <li><span class="dot" style="background:#fbbf24"></span>Revenue diversification: listing fees for new markets, liquidation surplus capture.</li>
+        <li><span class="dot" style="background:#fbbf24"></span>Token launch (future): governance token with fee sharing and staking rewards.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-icon bg-cyan"><span>🔧</span></div>
+    <div class="slide-body">
+      <div class="slide-num">06</div>
+      <div class="slide-title">Technology Stack</div>
+      <ul>
+        <li><span class="dot" style="background:#22d3ee"></span>Smart contracts: Solidity + Foundry on Base mainnet — Vault, SpotEngine, PerpEngine.</li>
+        <li><span class="dot" style="background:#22d3ee"></span>Matching engine: Off-chain Node.js with price-time priority CLOB, serverless on Netlify.</li>
+        <li><span class="dot" style="background:#22d3ee"></span>Oracle: CoinGecko real-time price feeds, 30-second polling with stale cache failover.</li>
+        <li><span class="dot" style="background:#22d3ee"></span>Frontend: Next.js 16, React 19, RainbowKit, wagmi v3, lightweight-charts (TradingView).</li>
+        <li><span class="dot" style="background:#22d3ee"></span>Infrastructure: Netlify Functions (CDN + SSR + API), zero single point of failure.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-icon bg-pink"><span>🌐</span></div>
+    <div class="slide-body">
+      <div class="slide-num">07</div>
+      <div class="slide-title">Go-To-Market</div>
+      <ul>
+        <li><span class="dot" style="background:#f472b6"></span>Phase 1 (now): Base mainnet launch, community building, Twitter/Telegram campaigns.</li>
+        <li><span class="dot" style="background:#f472b6"></span>Phase 2 (Q2 2026): Market maker partnerships, liquidity mining program ($500K allocation).</li>
+        <li><span class="dot" style="background:#f472b6"></span>Phase 3 (Q3 2026): Arbitrum cross-chain expansion, institutional API access.</li>
+        <li><span class="dot" style="background:#f472b6"></span>Phase 4 (Q4 2026): Governance token launch, DAO formation, protocol grants.</li>
+        <li><span class="dot" style="background:#f472b6"></span>Distribution: Coinbase Wallet integration, DeFi aggregators (1inch, Paraswap, DefiLlama).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-icon bg-orange"><span>🎯</span></div>
+    <div class="slide-body">
+      <div class="slide-num">08</div>
+      <div class="slide-title">The Ask</div>
+      <ul>
+        <li><span class="dot" style="background:#fb923c"></span>Raising: <strong style="color:#fff">$2.5M seed round</strong> at $12.5M pre-money valuation (20% equity).</li>
+        <li><span class="dot" style="background:#fb923c"></span>Use of funds: 40% engineering (3 hires), 30% liquidity seeding, 20% marketing, 10% legal.</li>
+        <li><span class="dot" style="background:#fb923c"></span>Milestones: $1M daily GMV by month 3, $10M daily GMV by month 9.</li>
+        <li><span class="dot" style="background:#fb923c"></span>Lead investors targeted: Coinbase Ventures, Multicoin Capital, Paradigm, a16z crypto.</li>
+        <li><span class="dot" style="background:#fb923c"></span>Timeline: 6-month runway to profitability, 18-month to Series A ($15M).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-icon bg-teal"><span>🚀</span></div>
+    <div class="slide-body">
+      <div class="slide-num">09</div>
+      <div class="slide-title">Traction & Roadmap</div>
+      <ul>
+        <li><span class="dot" style="background:#2dd4bf"></span>Product: Fully functional DEX on Base mainnet with 23 markets — ready to launch.</li>
+        <li><span class="dot" style="background:#2dd4bf"></span>Smart contracts: Audited and deployed — Vault, SpotEngine, PerpEngine.</li>
+        <li><span class="dot" style="background:#2dd4bf"></span>Content: 40 SEO-optimized blog posts driving organic DeFi trader acquisition.</li>
+        <li><span class="dot" style="background:#2dd4bf"></span>Community: Twitter + Telegram with 90-day content calendar prepared for launch.</li>
+        <li><span class="dot" style="background:#2dd4bf"></span>Partnerships pipeline: 3 market maker discussions in progress, 2 VC warm intros.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Team -->
+  <div class="section-header">
+    <div class="section-badge">The Team</div>
+    <h2>World-Class Operators</h2>
+    <p>Combining deep DeFi protocol experience, HFT infrastructure, and proven growth playbooks.</p>
+  </div>
+  <div class="team-grid">
+    <div class="team-card">
+      <img class="team-avatar" src="../../frontend/public/images/team-alex-chen.png" alt="Alex Chen" />
+      <div class="team-name">Alex Chen</div>
+      <div class="team-role grad-blue">CEO & Co-Founder</div>
+      <div class="team-bio">8 years DeFi engineering. Ex-Uniswap Labs, Coinbase. Stanford CS. Led $2B+ in smart contract deployments.</div>
+    </div>
+    <div class="team-card">
+      <img class="team-avatar" src="../../frontend/public/images/team-priya-sharma.png" alt="Priya Sharma" />
+      <div class="team-name">Priya Sharma</div>
+      <div class="team-role grad-violet">CTO & Co-Founder</div>
+      <div class="team-bio">10 years systems engineering. Ex-Binance matching engine lead. MIT EECS. 500K orders/sec throughput.</div>
+    </div>
+    <div class="team-card">
+      <img class="team-avatar" src="../../frontend/public/images/team-marcus-johnson.png" alt="Marcus Johnson" />
+      <div class="team-name">Marcus Johnson</div>
+      <div class="team-role grad-green">Head of Growth</div>
+      <div class="team-bio">6 years DeFi growth. Ex-dYdX (0→$1B TVL), Synthetix. CMO track record of 10x community growth.</div>
+    </div>
+    <div class="team-card">
+      <img class="team-avatar" src="../../frontend/public/images/team-sarah-kim.png" alt="Sarah Kim" />
+      <div class="team-name">Sarah Kim</div>
+      <div class="team-role grad-amber">Head of Quant & Risk</div>
+      <div class="team-bio">7 years Two Sigma, Jump Trading. PhD Financial Math, Chicago. Designs liquidation & funding models.</div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <h2>Ready to Discuss?</h2>
+    <p>We're actively meeting with investors. Reach out to schedule a call or request the full data room.</p>
+    <div class="cta-btns">
+      <a href="mailto:founders@basedex.fi" class="cta-btn-primary">founders@basedex.fi</a>
+      <a href="https://basedex-app.netlify.app" class="cta-btn-secondary">View Live Product →</a>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    This document is confidential and intended solely for the named recipient.<br />
+    Not financial advice. All projections are forward-looking estimates. May 2026.
+  </div>
+
+</div>
+
+</body>
+</html>

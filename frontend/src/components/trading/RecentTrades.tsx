@@ -8,7 +8,7 @@ export function RecentTrades() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="grid grid-cols-3 px-3 py-1 text-[9px] font-bold text-[#6a7090] uppercase tracking-[0.1em] border-b border-[#1a1a35] shrink-0">
+      <div className="grid grid-cols-3 px-3 py-1 text-[9px] font-bold text-[#9cacc4] uppercase tracking-[0.1em] border-b border-[#1a1a35] shrink-0">
         <span>Price</span>
         <span className="text-right">{base}</span>
         <span className="text-right">Time</span>
@@ -32,15 +32,15 @@ export function RecentTrades() {
                   maximumFractionDigits: isSmall ? 5 : 2,
                 })}
               </span>
-              <span className="font-mono text-[10px] text-[#8890a8] text-right group-hover:text-[#c8d0e0] transition-colors">
+              <span className="font-mono text-[10px] text-[#b8c0d8] text-right group-hover:text-white transition-colors">
                 {size < 0.001 ? size.toFixed(5) : size < 0.1 ? size.toFixed(4) : size < 10 ? size.toFixed(3) : size.toFixed(1)}
               </span>
-              <span className="font-mono text-[9px] text-[#6a7090] text-right">{time}</span>
+              <span className="font-mono text-[9px] text-[#9cacc4] text-right">{time}</span>
             </div>
           );
         })}
         {recentTrades.length === 0 && (
-          <div className="flex items-center justify-center h-16 text-[#6a7090] text-xs">
+          <div className="flex items-center justify-center h-16 text-[#9cacc4] text-xs">
             Waiting for trades…
           </div>
         )}

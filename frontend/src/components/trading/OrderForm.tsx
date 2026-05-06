@@ -135,7 +135,7 @@ export function OrderForm() {
                 borderRadius: 12,
                 fontSize: 14,
                 fontWeight: 900,
-                color: '#4a5068',
+                color: '#8898b8',
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
@@ -157,14 +157,14 @@ export function OrderForm() {
             className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
               orderType === t
                 ? 'bg-[#1a1a35] text-white border border-[#2a2a55]'
-                : 'text-[#4a5068] hover:text-[#8890a8] hover:bg-[#0d0d22]'
+                : 'text-[#8898b8] hover:text-white hover:bg-[#0d0d22]'
             }`}
           >
             {t}
           </button>
         ))}
         <div className="ml-auto text-[10px]">
-          <span className={orderType === 'limit' ? 'text-emerald-400 font-bold' : 'text-[#4a5068]'}>
+          <span className={orderType === 'limit' ? 'text-emerald-400 font-bold' : 'text-[#9cacc4]'}>
             {orderType === 'limit' ? 'Maker −0.01%' : 'Taker 0.06%'}
           </span>
         </div>
@@ -176,7 +176,7 @@ export function OrderForm() {
         {orderType === 'limit' ? (
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <label className="text-[10px] text-[#4a5068] font-bold uppercase tracking-wide">Price</label>
+              <label className="text-[10px] text-[#9cacc4] font-bold uppercase tracking-wide">Price</label>
               {pctOfMark !== null && Math.abs(pctOfMark) > 0.01 && (
                 <span className={`text-[9px] font-semibold ${pctOfMark > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {pctOfMark > 0 ? '+' : ''}{pctOfMark.toFixed(2)}% vs mark
@@ -193,8 +193,8 @@ export function OrderForm() {
           </div>
         ) : (
           <div className="bg-[#0d0d22] border border-[#1a1a35] rounded-xl px-3 py-2.5 flex items-center justify-between">
-            <span className="text-[10px] text-[#4a5068] font-bold uppercase tracking-wide">Price</span>
-            <span className="text-[11px] text-[#8890a8] font-mono">
+            <span className="text-[10px] text-[#9cacc4] font-bold uppercase tracking-wide">Price</span>
+            <span className="text-[11px] text-[#c0c8e0] font-mono">
               Market ~{markPrice > 0 ? `$${markPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '—'}
             </span>
           </div>
@@ -202,7 +202,7 @@ export function OrderForm() {
 
         {/* ── Amount ─────────────────────────────────────────── */}
         <div className="space-y-1">
-          <label className="text-[10px] text-[#4a5068] font-bold uppercase tracking-wide">{`Amount (${base})`}</label>
+          <label className="text-[10px] text-[#9cacc4] font-bold uppercase tracking-wide">{`Amount (${base})`}</label>
           <NumberInput value={size} onChange={setSize} placeholder="0.0000" right={base} />
           <div className="grid grid-cols-4 gap-1 mt-1">
             {[25, 50, 75, 100].map(pct => (
@@ -212,8 +212,8 @@ export function OrderForm() {
                 onClick={() => handlePct(pct)}
                 className={`py-1 text-[10px] font-bold rounded-lg transition-all border active:scale-95 ${
                   isBuy
-                    ? 'text-[#4a5068] bg-[#0d0d22] border-[#1a1a35] hover:bg-emerald-500/8 hover:text-emerald-400 hover:border-emerald-500/20'
-                    : 'text-[#4a5068] bg-[#0d0d22] border-[#1a1a35] hover:bg-red-500/8 hover:text-red-400 hover:border-red-500/20'
+                    ? 'text-[#9cacc4] bg-[#0d0d22] border-[#1a1a35] hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/20'
+                    : 'text-[#9cacc4] bg-[#0d0d22] border-[#1a1a35] hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20'
                 }`}
               >
                 {pct}%
@@ -226,7 +226,7 @@ export function OrderForm() {
         {isPerp && (
           <div className="bg-[#0a0a1e] rounded-xl p-3 space-y-2.5 border border-[#141430]">
             <div className="flex justify-between items-center">
-              <span className="text-[10px] text-[#4a5068] font-bold uppercase tracking-wide">Leverage</span>
+              <span className="text-[10px] text-[#9cacc4] font-bold uppercase tracking-wide">Leverage</span>
               <span className={`text-sm font-black px-2 py-0.5 rounded-lg ${
                 leverage >= 15
                   ? 'text-amber-400 bg-amber-500/10 border border-amber-500/20'
@@ -264,7 +264,7 @@ export function OrderForm() {
                         : p >= 10
                         ? 'text-orange-400 bg-orange-500/10 border border-orange-500/20'
                         : 'text-blue-400 bg-blue-500/10 border border-blue-500/20'
-                      : 'text-[#2a2e48] hover:text-[#8890a8]'
+                      : 'text-[#7a88a0] hover:text-white'
                   }`}
                 >
                   {p}×
@@ -370,7 +370,7 @@ function NumberInput({ value, onChange, placeholder, right, onMarkPrice }: {
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="flex-1 bg-transparent text-white text-sm font-mono outline-none placeholder-[#2a2e48] min-w-0"
+        className="flex-1 bg-transparent text-white text-sm font-mono outline-none placeholder-[#4a5878] min-w-0"
       />
       {onMarkPrice && (
         <button
@@ -381,15 +381,15 @@ function NumberInput({ value, onChange, placeholder, right, onMarkPrice }: {
           MKT
         </button>
       )}
-      <span className="text-[#3a3e58] text-xs font-bold shrink-0">{right}</span>
+      <span className="text-[#9cacc4] text-xs font-bold shrink-0">{right}</span>
     </div>
   );
 }
 
-function Row({ label, value, valueClass = 'text-[#8890a8]' }: { label: string; value: string; valueClass?: string }) {
+function Row({ label, value, valueClass = 'text-[#c0c8e0]' }: { label: string; value: string; valueClass?: string }) {
   return (
     <div className="flex justify-between items-center">
-      <span className="text-[10px] text-[#6a7090]">{label}</span>
+      <span className="text-[10px] text-[#9cacc4]">{label}</span>
       <span className={`text-[11px] font-mono font-medium ${valueClass}`}>{value}</span>
     </div>
   );

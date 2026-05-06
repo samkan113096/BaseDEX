@@ -50,12 +50,14 @@ export function OrderBook() {
     return s < 0.001 ? s.toFixed(5) : s < 0.1 ? s.toFixed(4) : s < 10 ? s.toFixed(3) : s.toFixed(1);
   };
 
+  const loading = topAsks.length === 0 && topBids.length === 0;
+
   return (
     <div className="flex flex-col h-full text-xs select-none">
 
       {/* Header */}
       <div className="flex items-center justify-between px-3 h-9 border-b border-[#1a1a35] shrink-0">
-        <span className="text-[10px] font-bold text-[#8890a8] uppercase tracking-widest">Order Book</span>
+        <span className="text-[10px] font-bold text-[#b0b8d0] uppercase tracking-widest">Order Book</span>
         <div className="flex gap-0.5">
           {(['both', 'bids', 'asks'] as View[]).map(v => (
             <button
@@ -80,7 +82,7 @@ export function OrderBook() {
       </div>
 
       {/* Column labels */}
-      <div className="grid grid-cols-3 px-3 py-1.5 text-[9px] font-bold text-[#6a7090] uppercase tracking-[0.1em] border-b border-[#1a1a35] shrink-0">
+      <div className="grid grid-cols-3 px-3 py-1.5 text-[9px] font-bold text-[#9cacc4] uppercase tracking-[0.1em] border-b border-[#1a1a35] shrink-0">
         <span>Price</span>
         <span className="text-right">{base}</span>
         <span className="text-right">Total</span>
@@ -89,6 +91,13 @@ export function OrderBook() {
       {/* Asks (reversed so lowest ask is at bottom) */}
       {view !== 'bids' && (
         <div className={`${view === 'asks' ? 'flex-1' : 'flex-none'} flex flex-col-reverse overflow-hidden`}>
+          {loading && Array.from({ length: 11 }).map((_, i) => (
+            <div key={i} className="grid grid-cols-3 px-3 py-[3.5px]">
+              <div className="skeleton h-2.5 w-16 rounded" style={{ opacity: 0.4 + i * 0.05 }} />
+              <div className="skeleton h-2.5 w-10 rounded ml-auto" style={{ opacity: 0.3 }} />
+              <div className="skeleton h-2.5 w-8 rounded ml-auto" style={{ opacity: 0.2 }} />
+            </div>
+          ))}
           {[...topAsks].reverse().map((level, idx) => {
             const realIdx = topAsks.length - 1 - idx;
             const pct     = (cumulativeAsks[realIdx] / maxCumAsk) * 100;
@@ -100,8 +109,8 @@ export function OrderBook() {
                   style={{ width: `${pct}%` }}
                 />
                 <span className="text-red-400 font-mono z-10 text-[11px]">{fmtPrice(level.price)}</span>
-                <span className="text-[#a0a8c0] font-mono text-right z-10 text-[10px]">{fmtSize(level.size)}</span>
-                <span className="text-[#7a8099] font-mono text-right z-10 text-[10px]">
+                <span className="text-[#c0c8e0] font-mono text-right z-10 text-[10px]">{fmtSize(level.size)}</span>
+                <span className="text-[#a8b0c8] font-mono text-right z-10 text-[10px]">
                   {total >= 1000 ? `${(total / 1000).toFixed(1)}K` : total.toFixed(0)}
                 </span>
               </div>
@@ -117,7 +126,7 @@ export function OrderBook() {
             ${markPrice.toLocaleString(undefined, { minimumFractionDigits: isSmall ? 4 : 2, maximumFractionDigits: isSmall ? 5 : 2 })}
           </span>
           {spread && (
-            <span className="text-[9px] text-[#6a7090] font-mono">
+            <span className="text-[9px] text-[#9cacc4] font-mono">
               {spread.pct}%
             </span>
           )}
@@ -127,6 +136,13 @@ export function OrderBook() {
       {/* Bids */}
       {view !== 'asks' && (
         <div className={`${view === 'bids' ? 'flex-1' : 'flex-none'} overflow-hidden`}>
+          {loading && Array.from({ length: 11 }).map((_, i) => (
+            <div key={i} className="grid grid-cols-3 px-3 py-[3.5px]">
+              <div className="skeleton h-2.5 w-16 rounded" style={{ opacity: 0.4 + (10 - i) * 0.05 }} />
+              <div className="skeleton h-2.5 w-10 rounded ml-auto" style={{ opacity: 0.3 }} />
+              <div className="skeleton h-2.5 w-8 rounded ml-auto" style={{ opacity: 0.2 }} />
+            </div>
+          ))}
           {topBids.map((level, idx) => {
             const pct   = (cumulativeBids[idx] / maxCumBid) * 100;
             const total = (parseFloat(level.price) / 1e6) * (parseFloat(level.size) / 1e18);
@@ -137,8 +153,8 @@ export function OrderBook() {
                   style={{ width: `${pct}%` }}
                 />
                 <span className="text-emerald-400 font-mono z-10 text-[11px]">{fmtPrice(level.price)}</span>
-                <span className="text-[#a0a8c0] font-mono text-right z-10 text-[10px]">{fmtSize(level.size)}</span>
-                <span className="text-[#7a8099] font-mono text-right z-10 text-[10px]">
+                <span className="text-[#c0c8e0] font-mono text-right z-10 text-[10px]">{fmtSize(level.size)}</span>
+                <span className="text-[#a8b0c8] font-mono text-right z-10 text-[10px]">
                   {total >= 1000 ? `${(total / 1000).toFixed(1)}K` : total.toFixed(0)}
                 </span>
               </div>

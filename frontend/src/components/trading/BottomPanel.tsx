@@ -70,7 +70,7 @@ export function BottomPanel() {
             className={`flex items-center gap-1.5 px-3 h-full text-xs font-semibold transition-all border-b-2 ${
               tab === t.id
                 ? 'text-white border-blue-500'
-                : 'text-[#7a8099] border-transparent hover:text-[#c8d0e0]'
+                : 'text-[#a8b0c8] border-transparent hover:text-white'
             }`}
           >
             {t.icon && <span className={tab === t.id ? 'text-blue-400' : ''}>{t.icon}</span>}
@@ -86,7 +86,7 @@ export function BottomPanel() {
           onClick={refreshOrders}
           disabled={refreshing || !address}
           title="Refresh orders"
-          className="ml-auto mr-1 p-1.5 text-[#6a7090] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded"
+          className="ml-auto mr-1 p-1.5 text-[#9cacc4] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded"
         >
           <RefreshCw size={11} className={refreshing ? 'animate-spin' : ''} />
         </button>
@@ -157,7 +157,7 @@ function OrdersTab({ orders, onCancel }: { orders: OpenOrder[]; onCancel: (m: st
             <tr key={o.id} className="border-b border-[#0d0d22] hover:bg-[#0d0d22] transition-colors">
               <Td><span className="text-white font-semibold">{o.marketId}</span></Td>
               <Td className={o.side === 'buy' ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>{o.side.toUpperCase()}</Td>
-              <Td className="capitalize text-[#8890a8]">{o.type}</Td>
+                <Td className="capitalize text-[#b8c0d8]">{o.type}</Td>
               <Td>${(parseFloat(o.price) / 1e6).toLocaleString(undefined, { maximumFractionDigits: 2 })}</Td>
               <Td>{(parseFloat(o.size) / 1e18).toFixed(4)}</Td>
               <Td>
@@ -165,18 +165,18 @@ function OrdersTab({ orders, onCancel }: { orders: OpenOrder[]; onCancel: (m: st
                   <div className="w-14 bg-[#1a1a35] rounded-full h-1">
                     <div className="h-1 bg-blue-500 rounded-full transition-all" style={{ width: `${filled}%` }} />
                   </div>
-                  <span className="text-[9px] text-[#8890a8]">{filled.toFixed(0)}%</span>
+                  <span className="text-[9px] text-[#b8c0d8]">{filled.toFixed(0)}%</span>
                 </div>
               </Td>
               <Td>
-                <span className="capitalize text-[#8890a8] bg-[#0d0d22] border border-[#252545] px-1.5 py-0.5 rounded text-[9px]">
+                <span className="capitalize text-[#c0c8e0] bg-[#0d0d22] border border-[#252545] px-1.5 py-0.5 rounded text-[9px]">
                   {o.status}
                 </span>
               </Td>
               <Td>
-                <button
+                  <button
                   onClick={() => onCancel(o.marketId, o.id)}
-                  className="text-[#6a7090] hover:text-red-400 hover:bg-red-500/10 rounded p-0.5 transition-all"
+                  className="text-[#9cacc4] hover:text-red-400 hover:bg-red-500/10 rounded p-0.5 transition-all"
                 >
                   <X size={12} />
                 </button>
@@ -213,8 +213,8 @@ function EmptyState({ icon, text, sub }: { icon: string; text: string; sub: stri
   return (
     <div className="flex flex-col items-center justify-center h-full gap-1 py-5">
       <span className="text-2xl mb-1 opacity-30">{icon}</span>
-      <p className="text-[#a0a8c0] text-xs font-semibold">{text}</p>
-      <p className="text-[#6a7090] text-[10px]">{sub}</p>
+      <p className="text-[#c8d0e8] text-xs font-semibold">{text}</p>
+      <p className="text-[#9cacc4] text-[10px]">{sub}</p>
     </div>
   );
 }
@@ -224,7 +224,7 @@ function Thead({ cols }: { cols: string[] }) {
     <thead className="sticky top-0 bg-[#09091a] z-10">
       <tr className="border-b border-[#1a1a35]">
         {cols.map(c => (
-          <th key={c} className="px-3 py-2 text-left text-[9px] text-[#6a7090] uppercase tracking-[0.12em] font-bold whitespace-nowrap">{c}</th>
+          <th key={c} className="px-3 py-2 text-left text-[9px] text-[#9cacc4] uppercase tracking-[0.12em] font-bold whitespace-nowrap">{c}</th>
         ))}
       </tr>
     </thead>
@@ -232,5 +232,5 @@ function Thead({ cols }: { cols: string[] }) {
 }
 
 function Td({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-3 py-2 text-[#8890a8] font-mono text-[11px] whitespace-nowrap ${className}`}>{children}</td>;
+  return <td className={`px-3 py-2 text-[#c0c8e0] font-mono text-[11px] whitespace-nowrap ${className}`}>{children}</td>;
 }

@@ -7,12 +7,12 @@ import { Menu, X, Zap } from 'lucide-react';
 import { PriceTicker } from './PriceTicker';
 
 const NAV_LINKS = [
-  { href: '#features', label: 'Features' },
-  { href: '#markets',  label: 'Markets'  },
-  { href: '#about',    label: 'About'    },
-  { href: '/blog',     label: 'Blog'     },
-  { href: '#faq',      label: 'FAQ'      },
-  { href: '/audit',    label: 'Audit'    },
+  { href: '/#features',  label: 'Features'  },
+  { href: '/#markets',   label: 'Markets'   },
+  { href: '/#about',     label: 'About'     },
+  { href: '/blog',       label: 'Blog'      },
+  { href: '/#faq',       label: 'FAQ'       },
+  { href: '/audit',      label: 'Audit'     },
   { href: '/pitch-deck', label: 'Investors' },
 ];
 
@@ -45,8 +45,9 @@ export function LandingNav() {
 
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-              <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-shadow">
-                <span className="text-white font-black text-base">B</span>
+              <div className="relative w-9 h-9 rounded-xl overflow-hidden shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-shadow">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/logo-icon.png" alt="BaseDEX logo" className="w-full h-full object-cover" />
                 <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#05050f] animate-pulse" />
               </div>
               <span className="text-white font-extrabold text-xl tracking-tight group-hover:text-blue-400 transition-colors">BaseDEX</span>

@@ -2,6 +2,8 @@ import { randomUUID } from 'crypto';
 import { EventEmitter } from 'events';
 import { OrderBook } from './orderbook.js';
 import type { Order, Fill, MarketConfig, Candle, OrderBookSnapshot } from './types.js';
+import { insertTrade, upsertCandle, upsertOrder } from '../db/client.js';
+import { publish } from '../redis/client.js';
 
 const CANDLE_INTERVALS = [60, 300, 900, 3600, 14400, 86400];
 
@@ -192,6 +194,9 @@ export class MatchingEngine extends EventEmitter {
     const book  = this.books.get(params.marketId)!;
     const fills = book.addOrder(order);
 
+    upsertOrder(order.id, order.marketId, order.trader, order.side, order.type,
+      order.price, order.size, order.remainingSize, order.status, order.createdAt).catch(() => {});
+
     this.emit('orderUpdate', order);
     for (const fill of fills) { this._recordFill(fill); this.emit('fill', fill); }
     if (fills.length > 0) this.emit('bookUpdate', book.getSnapshot());
@@ -273,11 +278,28 @@ export class MatchingEngine extends EventEmitter {
     // rolling 24h stats
     const value = (Number(fill.price) / 1e6) * (Number(fill.size) / 1e18);
     this.rollingTrades.push({ value, trader: fill.taker, timestamp: fill.timestamp });
-    // evict entries older than 24h
     const cutoff = Date.now() - 86_400_000;
     while (this.rollingTrades.length && this.rollingTrades[0].timestamp < cutoff) {
       this.rollingTrades.shift();
     }
+
+    // ── Persist to Postgres + broadcast via Redis (fire-and-forget) ──────
+    const price = Number(fill.price) / 1e6;
+    const vol   = Number(fill.size)  / 1e18;
+
+    insertTrade(fill.id, fill.marketId, fill.maker, fill.taker,
+      fill.price, fill.size, fill.side, fill.timestamp).catch(() => {});
+
+    for (const interval of CANDLE_INTERVALS) {
+      const aligned = Math.floor(fill.timestamp / (interval * 1000)) * interval;
+      upsertCandle(fill.marketId, interval, aligned, price, vol).catch(() => {});
+    }
+
+    publish('trades', {
+      type: 'trade', marketId: fill.marketId,
+      price: fill.price.toString(), size: fill.size.toString(),
+      side: fill.side, ts: fill.timestamp,
+    }).catch(() => {});
   }
 
   private _updateCandles(marketId: string, fill: Fill): void {

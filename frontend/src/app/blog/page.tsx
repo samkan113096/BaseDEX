@@ -5,6 +5,24 @@ import { LandingNav } from '@/components/landing/LandingNav';
 import { Footer } from '@/components/landing/Footer';
 import { Clock, ArrowRight } from 'lucide-react';
 
+const CATEGORY_IMAGES: Record<string, string> = {
+  'Platform':           '/images/blog-platform.png',
+  'Trading Guide':      '/images/blog-trading-guide.png',
+  'Education':          '/images/blog-education.png',
+  'Risk Management':    '/images/blog-risk-management.png',
+  'Base Network':       '/images/blog-base-network.png',
+  'Technology':         '/images/blog-technology.png',
+  'Asset Guide':        '/images/blog-asset-guide.png',
+  'Industry':           '/images/blog-industry.png',
+  'Trading Strategy':   '/images/blog-trading-guide.png',
+  'Technical Analysis': '/images/blog-technical-analysis.png',
+  'Comparison':         '/images/blog-platform.png',
+  'Security':           '/images/blog-risk-management.png',
+  'Institutional':      '/images/blog-institutional.png',
+  'Roadmap':            '/images/blog-base-network.png',
+  'How-To':             '/images/blog-education.png',
+};
+
 export const metadata: Metadata = {
   title: 'Blog — DeFi Trading Guides, Base Network, Crypto Education',
   description: '40+ expert articles on DeFi trading, perpetual futures, Base network, technical analysis, and crypto strategy. Learn to trade on BaseDEX.',
@@ -59,8 +77,14 @@ export default function BlogPage() {
             <div className="grid md:grid-cols-3 gap-6">
               {featured.map((post, i) => (
                 <Link key={i} href={`/blog/${post.slug}`} className="panel overflow-hidden hover:border-[#2a2a4a] transition-all group flex flex-col">
-                  <div className="bg-gradient-to-br from-blue-600/20 to-violet-600/20 h-40 flex items-center justify-center">
-                    <span className="text-6xl font-black text-gradient opacity-40">{post.category.slice(0,1)}</span>
+                  <div className="h-40 overflow-hidden relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={CATEGORY_IMAGES[post.category] ?? '/images/blog-platform.png'}
+                      alt={post.category}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(10,10,28,0.8) 100%)' }} />
                   </div>
                   <div className="p-6 flex flex-col flex-1">
                     <div className="flex items-center gap-2 mb-3">

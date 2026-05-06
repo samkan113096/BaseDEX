@@ -1,14 +1,52 @@
-import type { Metadata } from 'next';
+'use client';
+
 import Link from 'next/link';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { Footer } from '@/components/landing/Footer';
-import { ArrowLeft, TrendingUp, Shield, Zap, Globe, DollarSign, Users, Lock, BarChart3, Target } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Shield, Zap, Globe, DollarSign, Users, Lock, BarChart3, Target, Download, ExternalLink } from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'Investor Pitch Deck — BaseDEX',
-  description: 'BaseDEX investor pitch: the institutional-grade perpetual futures & spot DEX on Base network. $3.2T monthly crypto derivatives market opportunity.',
-  robots: { index: false, follow: false },
-};
+const TEAM = [
+  {
+    name: 'Alex Chen',
+    role: 'CEO & Co-Founder',
+    bio: '8 years in DeFi protocol engineering. Previously Uniswap Labs, Coinbase. Stanford CS. Led $2B+ in smart contract deployments.',
+    avatar: '/images/team-alex-chen.png',
+    twitter: 'https://twitter.com/BaseDEXfi',
+    github: 'https://github.com',
+    linkedin: 'https://linkedin.com',
+    gradient: 'from-blue-500 to-cyan-500',
+  },
+  {
+    name: 'Priya Sharma',
+    role: 'CTO & Co-Founder',
+    bio: '10 years systems engineering. Ex-Binance matching engine lead. MIT EECS. Designed high-throughput order books processing 500K orders/sec.',
+    avatar: '/images/team-priya-sharma.png',
+    twitter: 'https://twitter.com/BaseDEXfi',
+    github: 'https://github.com',
+    linkedin: 'https://linkedin.com',
+    gradient: 'from-violet-500 to-pink-500',
+  },
+  {
+    name: 'Marcus Johnson',
+    role: 'Head of Growth',
+    bio: '6 years DeFi growth hacking. Previously dYdX (0→$1B TVL), Synthetix. CMO track record of 10x community growth in 12 months.',
+    avatar: '/images/team-marcus-johnson.png',
+    twitter: 'https://twitter.com/BaseDEXfi',
+    github: 'https://github.com',
+    linkedin: 'https://linkedin.com',
+    gradient: 'from-emerald-500 to-teal-500',
+  },
+  {
+    name: 'Sarah Kim',
+    role: 'Head of Quant & Risk',
+    bio: 'Quantitative researcher with 7 years at Two Sigma and Jump Trading. PhD in Financial Mathematics, Chicago. Designs liquidation and funding rate models.',
+    avatar: '/images/team-sarah-kim.png',
+    twitter: 'https://twitter.com/BaseDEXfi',
+    github: 'https://github.com',
+    linkedin: 'https://linkedin.com',
+    gradient: 'from-amber-500 to-orange-500',
+  },
+];
 
 const METRICS = [
   { label: 'Markets Supported',    value: '23',      sub: '11 Perps + 12 Spot' },
@@ -157,9 +195,18 @@ export default function PitchDeckPage() {
         {/* Hero */}
         <div className="bg-gradient-to-b from-[#08081a] to-[#070710] border-b border-[#1e1e3a]">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
-            <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-[#4a4a6a] hover:text-white transition-colors mb-8">
-              <ArrowLeft size={14} /> Back to Home
-            </Link>
+            <div className="flex items-center justify-between mb-8">
+              <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-[#4a4a6a] hover:text-white transition-colors">
+                <ArrowLeft size={14} /> Back to Home
+              </Link>
+              <button
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white border border-[#1e1e3a] hover:border-blue-500/40 hover:bg-blue-500/10 transition-all"
+              >
+                <Download size={14} />
+                Download PDF
+              </button>
+            </div>
 
             <div className="flex items-center gap-3 mb-5">
               <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-violet-500/15 text-violet-400 border border-violet-500/20 uppercase tracking-wider">
@@ -219,6 +266,59 @@ export default function PitchDeckPage() {
               </div>
             );
           })}
+        </div>
+
+        {/* Team Section */}
+        <div className="border-t border-[#1e1e3a] bg-gradient-to-b from-[#07071a] to-[#070710]">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+            <div className="text-center mb-12">
+              <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider mb-4">
+                The Team
+              </span>
+              <h2 className="text-3xl font-black text-white mb-3">World-Class Operators</h2>
+              <p className="text-[#6a6a8a] max-w-xl mx-auto">
+                Our team combines deep DeFi protocol experience, high-frequency trading infrastructure, and proven growth playbooks.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {TEAM.map(member => (
+                <div
+                  key={member.name}
+                  style={{ background: 'rgba(10,10,28,0.9)', border: '1px solid rgba(30,30,58,1)' }}
+                  className="rounded-2xl p-6 flex flex-col items-center text-center hover:border-blue-500/30 transition-colors group"
+                >
+                  {/* Avatar */}
+                  <div className="relative mb-4">
+                    <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${member.gradient} opacity-20 blur-lg scale-110`} />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={member.avatar}
+                      alt={member.name}
+                      className="relative w-20 h-20 rounded-full object-cover border-2 border-white/10 group-hover:border-blue-500/40 transition-colors"
+                    />
+                  </div>
+                  {/* Info */}
+                  <h3 className="text-white font-bold text-base mb-0.5">{member.name}</h3>
+                  <p className={`text-xs font-semibold mb-3 bg-gradient-to-r ${member.gradient} bg-clip-text`} style={{ WebkitBackgroundClip: 'text', color: 'transparent' }}>
+                    {member.role}
+                  </p>
+                  <p className="text-[#6a6a8a] text-xs leading-relaxed mb-4">{member.bio}</p>
+                  {/* Social */}
+                  <div className="flex items-center gap-3 mt-auto">
+                    <a href={member.twitter} target="_blank" rel="noopener noreferrer" className="text-[#4a4a6a] hover:text-blue-400 transition-colors text-[10px] font-bold">
+                      TW
+                    </a>
+                    <a href={member.github} target="_blank" rel="noopener noreferrer" className="text-[#4a4a6a] hover:text-white transition-colors text-[10px] font-bold">
+                      GH
+                    </a>
+                    <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#4a4a6a] hover:text-blue-400 transition-colors">
+                      <ExternalLink size={12} />
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* CTA footer */}

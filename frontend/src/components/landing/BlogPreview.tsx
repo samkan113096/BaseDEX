@@ -3,33 +3,43 @@ import { BLOG_POSTS } from '@/data/blog-posts';
 import { ArrowRight, Clock } from 'lucide-react';
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
-  'Platform':        { bg: 'rgba(59,130,246,0.12)',   text: '#60a5fa'  },
-  'Trading Guide':   { bg: 'rgba(139,92,246,0.12)',   text: '#a78bfa'  },
-  'Education':       { bg: 'rgba(16,185,129,0.12)',   text: '#34d399'  },
-  'Risk Management': { bg: 'rgba(249,115,22,0.12)',   text: '#fb923c'  },
-  'Base Network':    { bg: 'rgba(6,182,212,0.12)',    text: '#22d3ee'  },
-  'Technology':      { bg: 'rgba(99,102,241,0.12)',   text: '#818cf8'  },
-  'Asset Guide':     { bg: 'rgba(234,179,8,0.12)',    text: '#facc15'  },
-  'Industry':        { bg: 'rgba(236,72,153,0.12)',   text: '#f472b6'  },
-  'Strategy':        { bg: 'rgba(20,184,166,0.12)',   text: '#2dd4bf'  },
+  'Platform':           { bg: 'rgba(59,130,246,0.12)',   text: '#60a5fa'  },
+  'Trading Guide':      { bg: 'rgba(139,92,246,0.12)',   text: '#a78bfa'  },
+  'Education':          { bg: 'rgba(16,185,129,0.12)',   text: '#34d399'  },
+  'Risk Management':    { bg: 'rgba(249,115,22,0.12)',   text: '#fb923c'  },
+  'Base Network':       { bg: 'rgba(6,182,212,0.12)',    text: '#22d3ee'  },
+  'Technology':         { bg: 'rgba(99,102,241,0.12)',   text: '#818cf8'  },
+  'Asset Guide':        { bg: 'rgba(234,179,8,0.12)',    text: '#facc15'  },
+  'Industry':           { bg: 'rgba(236,72,153,0.12)',   text: '#f472b6'  },
+  'Trading Strategy':   { bg: 'rgba(20,184,166,0.12)',   text: '#2dd4bf'  },
+  'Technical Analysis': { bg: 'rgba(245,158,11,0.12)',   text: '#fbbf24'  },
+  'Comparison':         { bg: 'rgba(168,85,247,0.12)',   text: '#c084fc'  },
+  'Security':           { bg: 'rgba(239,68,68,0.12)',    text: '#f87171'  },
+  'Institutional':      { bg: 'rgba(212,175,55,0.12)',   text: '#d4af37'  },
+  'Roadmap':            { bg: 'rgba(34,211,238,0.12)',   text: '#67e8f9'  },
+  'How-To':             { bg: 'rgba(74,222,128,0.12)',   text: '#86efac'  },
 };
 
 const DEFAULT_CAT = { bg: 'rgba(42,42,68,0.5)', text: '#8888aa' };
 
-// Pick a gradient for the card header based on category
-const CARD_GRADIENTS: Record<string, string> = {
-  'Platform':        'linear-gradient(135deg, rgba(59,130,246,0.25) 0%, rgba(139,92,246,0.15) 100%)',
-  'Trading Guide':   'linear-gradient(135deg, rgba(139,92,246,0.25) 0%, rgba(236,72,153,0.15) 100%)',
-  'Education':       'linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(6,182,212,0.15) 100%)',
-  'Risk Management': 'linear-gradient(135deg, rgba(239,68,68,0.25) 0%, rgba(249,115,22,0.15) 100%)',
-  'Base Network':    'linear-gradient(135deg, rgba(6,182,212,0.25) 0%, rgba(59,130,246,0.15) 100%)',
-  'Technology':      'linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(139,92,246,0.15) 100%)',
-  'Asset Guide':     'linear-gradient(135deg, rgba(234,179,8,0.25) 0%, rgba(249,115,22,0.15) 100%)',
-  'Industry':        'linear-gradient(135deg, rgba(236,72,153,0.25) 0%, rgba(139,92,246,0.15) 100%)',
-  'Strategy':        'linear-gradient(135deg, rgba(20,184,166,0.25) 0%, rgba(16,185,129,0.15) 100%)',
+// Map categories to real cover images
+const CATEGORY_IMAGES: Record<string, string> = {
+  'Platform':           '/images/blog-platform.png',
+  'Trading Guide':      '/images/blog-trading-guide.png',
+  'Education':          '/images/blog-education.png',
+  'Risk Management':    '/images/blog-risk-management.png',
+  'Base Network':       '/images/blog-base-network.png',
+  'Technology':         '/images/blog-technology.png',
+  'Asset Guide':        '/images/blog-asset-guide.png',
+  'Industry':           '/images/blog-industry.png',
+  'Trading Strategy':   '/images/blog-trading-guide.png',
+  'Technical Analysis': '/images/blog-technical-analysis.png',
+  'Comparison':         '/images/blog-platform.png',
+  'Security':           '/images/blog-risk-management.png',
+  'Institutional':      '/images/blog-institutional.png',
+  'Roadmap':            '/images/blog-base-network.png',
+  'How-To':             '/images/blog-education.png',
 };
-
-const DEFAULT_GRAD = 'linear-gradient(135deg, rgba(42,42,85,0.4) 0%, rgba(26,26,53,0.4) 100%)';
 
 export function BlogPreview() {
   const featured = BLOG_POSTS.filter(p => p.featured).slice(0, 3);
@@ -67,7 +77,6 @@ export function BlogPreview() {
         <div className="grid md:grid-cols-3 gap-6 mb-6">
           {featured.map((post, i) => {
             const cat = CATEGORY_COLORS[post.category] ?? DEFAULT_CAT;
-            const grad = CARD_GRADIENTS[post.category] ?? DEFAULT_GRAD;
             return (
               <Link
                 key={i}
@@ -83,17 +92,15 @@ export function BlogPreview() {
                 }}
                 className="hover:border-[#2a2a45] hover:-translate-y-1 group"
               >
-                {/* Gradient header */}
-                <div
-                  className="h-32 flex items-center justify-center"
-                  style={{ background: grad }}
-                >
-                  <span
-                    className="text-6xl font-black opacity-60 select-none"
-                    style={{ color: cat.text }}
-                  >
-                    {post.category.slice(0, 1)}
-                  </span>
+                {/* Cover image */}
+                <div className="h-36 overflow-hidden relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={CATEGORY_IMAGES[post.category] ?? '/images/blog-platform.png'}
+                    alt={post.category}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(13,13,34,0.85) 100%)' }} />
                 </div>
                 {/* Body */}
                 <div className="p-5 flex flex-col flex-1">
