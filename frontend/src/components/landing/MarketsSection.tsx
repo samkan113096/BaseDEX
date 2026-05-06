@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, ExternalLink } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
+import { TokenLogo } from '@/components/ui/TokenLogo';
 import { apiPath } from '@/lib/api';
 
 interface PriceRow { price: number; change24h: number; high24h?: number; low24h?: number; }
@@ -72,20 +73,6 @@ function Sparkline({ data, up }: { data: number[]; up: boolean }) {
   );
 }
 
-function TokenIcon({ symbol, color }: { symbol: string; color: string }) {
-  return (
-    <div
-      className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-black shadow-lg shrink-0"
-      style={{
-        background: `radial-gradient(circle at 35% 35%, ${color}55, ${color}18)`,
-        border:     `1.5px solid ${color}35`,
-        boxShadow:  `0 0 16px ${color}20, inset 0 1px 0 ${color}30`,
-      }}
-    >
-      {symbol.slice(0, 2)}
-    </div>
-  );
-}
 
 export function MarketsSection() {
   const [prices, setPrices] = useState<Record<string, PriceRow>>({});
@@ -166,7 +153,7 @@ export function MarketsSection() {
                       {/* Token */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <TokenIcon symbol={m.symbol} color={m.color} />
+                          <TokenLogo symbol={m.symbol} size={40} />
                           <div>
                             <div className="text-white font-black text-sm">{m.symbol}-PERP</div>
                             <div className="text-[#4a5068] text-xs mt-0.5">{m.name}</div>

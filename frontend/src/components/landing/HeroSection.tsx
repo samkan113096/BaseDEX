@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { ArrowRight, Zap, Shield, TrendingUp, Layers, CheckCircle } from 'lucide-react';
 
 const TRUST_BADGES = [
-  { icon: <Shield   size={13} />, text: 'Non-custodial',      color: 'text-blue-400',    bg: 'bg-blue-500/8',    border: 'border-blue-500/20'    },
-  { icon: <Zap      size={13} />, text: '< 200ms fills',      color: 'text-emerald-400', bg: 'bg-emerald-500/8', border: 'border-emerald-500/20' },
-  { icon: <TrendingUp size={13}/>, text: 'Up to 20× leverage', color: 'text-violet-400',  bg: 'bg-violet-500/8',  border: 'border-violet-500/20'  },
-  { icon: <Layers   size={13} />, text: 'Base + ARB soon',    color: 'text-amber-400',   bg: 'bg-amber-500/8',   border: 'border-amber-500/20'   },
-  { icon: <CheckCircle size={13}/>, text: 'Audited contracts', color: 'text-cyan-400',    bg: 'bg-cyan-500/8',    border: 'border-cyan-500/20'    },
+  { icon: <Shield   size={13} />, text: 'Non-custodial',      iconColor: '#60a5fa', bg: 'rgba(59,130,246,0.10)',  border: 'rgba(59,130,246,0.25)'  },
+  { icon: <Zap      size={13} />, text: '< 200ms fills',      iconColor: '#34d399', bg: 'rgba(16,185,129,0.10)', border: 'rgba(16,185,129,0.25)' },
+  { icon: <TrendingUp size={13}/>, text: 'Up to 20× leverage', iconColor: '#a78bfa', bg: 'rgba(139,92,246,0.10)', border: 'rgba(139,92,246,0.25)' },
+  { icon: <Layers   size={13} />, text: 'Base + ARB soon',    iconColor: '#fbbf24', bg: 'rgba(245,158,11,0.10)',  border: 'rgba(245,158,11,0.25)'  },
+  { icon: <CheckCircle size={13}/>, text: 'Audited contracts', iconColor: '#22d3ee', bg: 'rgba(6,182,212,0.10)',   border: 'rgba(6,182,212,0.25)'   },
 ];
 
 export function HeroSection() {
@@ -103,10 +103,15 @@ export function HeroSection() {
               {TRUST_BADGES.map((b, i) => (
                 <div
                   key={i}
-                  className={`flex items-center gap-1.5 ${b.bg} border ${b.border} rounded-full px-3.5 py-1.5 backdrop-blur-sm`}
+                  className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5"
+                  style={{
+                    background: b.bg,
+                    border: `1px solid ${b.border}`,
+                    backdropFilter: 'blur(8px)',
+                  }}
                 >
-                  <span className={b.color}>{b.icon}</span>
-                  <span className="text-[#9090b0] text-xs font-medium">{b.text}</span>
+                  <span style={{ color: b.iconColor }}>{b.icon}</span>
+                  <span style={{ color: '#a0a8c0', fontSize: 12, fontWeight: 500 }}>{b.text}</span>
                 </div>
               ))}
             </div>

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { apiPath } from '@/lib/api';
+import { TokenLogo } from '@/components/ui/TokenLogo';
 
 interface Ticker {
   symbol: string;
@@ -74,11 +75,8 @@ export function PriceTicker() {
                 key={key}
                 className="inline-flex items-center gap-2.5 px-5 py-1 hover:bg-white/[0.03] transition-colors rounded-full cursor-pointer"
               >
-                {/* Token dot */}
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ background: t.color, boxShadow: `0 0 6px ${t.color}80` }}
-                />
+                {/* Token logo */}
+                <TokenLogo symbol={t.symbol} size={18} />
                 <span className="text-xs font-black text-white tracking-tight">{t.symbol}</span>
                 <span className="font-mono text-xs font-bold text-[#c8d0e0]">{fmtPrice(t.price)}</span>
                 <span className={`inline-flex items-center gap-0.5 text-[11px] font-bold ${up ? 'text-emerald-400' : 'text-red-400'}`}>
