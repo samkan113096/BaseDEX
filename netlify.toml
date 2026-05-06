@@ -7,7 +7,8 @@
   # Build from the frontend workspace
   base    = "frontend"
   command = "npm install && npm run build"
-  publish = ".next"
+  # publish is relative to the config file (repo root), not base
+  publish = "frontend/.next"
 
 [build.environment]
   NODE_VERSION = "20"
