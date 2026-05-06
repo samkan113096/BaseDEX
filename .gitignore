@@ -68,3 +68,4 @@ mnemonic.txt
 
 # Local Netlify folder
 .netlify
+contracts/broadcast/

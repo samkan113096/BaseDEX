@@ -2,15 +2,26 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
+import "forge-std/console.sol";
 import "../src/Vault.sol";
 import "../src/SpotEngine.sol";
 import "../src/PerpEngine.sol";
 import "../src/MockPriceFeed.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+/// @dev Minimal mock ERC20 for testnet spot pairs
+contract MockToken is ERC20 {
+    uint8 private _dec;
+    constructor(string memory name, string memory symbol, uint8 dec) ERC20(name, symbol) {
+        _dec = dec;
+    }
+    function decimals() public view override returns (uint8) { return _dec; }
+    function mint(address to, uint256 amount) external { _mint(to, amount); }
+}
 
 contract Deploy is Script {
-    // Base Sepolia USDC
+    // ── Base Sepolia canonical tokens ─────────────────────────
     address constant USDC = 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
-    // Base Sepolia WETH (mock — replace with real wrapped token)
     address constant WETH = 0x4200000000000000000000000000000000000006;
 
     function run() external {
@@ -19,19 +30,57 @@ contract Deploy is Script {
 
         vm.startBroadcast(deployerPk);
 
-        // 1. Price feed
+        // ── 1. Price feed ──────────────────────────────────────
         MockPriceFeed priceFeed = new MockPriceFeed();
 
-        // 2. Vault
+        // ── 2. Mock ERC-20 tokens for spot pairs ──────────────
+        // (Base Sepolia doesn't have canonical BTC/SOL/DOGE tokens)
+        MockToken mockUSDT = new MockToken("Tether USD",     "USDT", 6);
+        MockToken mockBTC  = new MockToken("Wrapped Bitcoin","WBTC", 8);
+        MockToken mockSOL  = new MockToken("Wrapped SOL",    "SOL",  9);
+        MockToken mockDOGE = new MockToken("Dogecoin",       "DOGE", 8);
+        MockToken mockAVAX = new MockToken("Avalanche",      "AVAX", 18);
+        MockToken mockLINK = new MockToken("Chainlink",      "LINK", 18);
+        MockToken mockAERO = new MockToken("Aerodrome",      "AERO", 18);
+
+        // Mint test supply to deployer for seeding / testing
+        uint256 largeAmount = 1_000_000e18;
+        mockUSDT.mint(deployer, 1_000_000e6);
+        mockBTC.mint(deployer, 100e8);
+        mockSOL.mint(deployer, largeAmount);
+        mockDOGE.mint(deployer, largeAmount);
+        mockAVAX.mint(deployer, largeAmount);
+        mockLINK.mint(deployer, largeAmount);
+        mockAERO.mint(deployer, largeAmount);
+
+        // ── 3. Vault ───────────────────────────────────────────
         Vault vault = new Vault(deployer);
-        vault.whitelistToken(USDC, true);
-        vault.whitelistToken(WETH, true);
+        vault.whitelistToken(USDC,                  true);
+        vault.whitelistToken(WETH,                  true);
+        vault.whitelistToken(address(mockUSDT),     true);
+        vault.whitelistToken(address(mockBTC),      true);
+        vault.whitelistToken(address(mockSOL),      true);
+        vault.whitelistToken(address(mockDOGE),     true);
+        vault.whitelistToken(address(mockAVAX),     true);
+        vault.whitelistToken(address(mockLINK),     true);
+        vault.whitelistToken(address(mockAERO),     true);
 
-        // 3. Spot engine
+        // ── 4. Spot engine ─────────────────────────────────────
         SpotEngine spot = new SpotEngine(address(vault), deployer, deployer);
-        spot.addMarket(WETH, USDC);  // market 0: ETH/USDC
+        // ETH/USDC (canonical)
+        spot.addMarket(WETH,                address(mockUSDT));  // ETH/USDT
+        spot.addMarket(WETH,                USDC);               // ETH/USDC
+        spot.addMarket(address(mockBTC),    USDC);               // BTC/USDC
+        spot.addMarket(address(mockBTC),    address(mockUSDT));  // BTC/USDT
+        spot.addMarket(address(mockSOL),    USDC);               // SOL/USDC
+        spot.addMarket(address(mockSOL),    address(mockUSDT));  // SOL/USDT
+        spot.addMarket(address(mockDOGE),   USDC);               // DOGE/USDC
+        spot.addMarket(address(mockAVAX),   USDC);               // AVAX/USDC
+        spot.addMarket(address(mockLINK),   USDC);               // LINK/USDC
+        spot.addMarket(address(mockAERO),   USDC);               // AERO/USDC
 
-        // 4. Perp engine
+        // ── 5. Perp engine ─────────────────────────────────────
+        //      addMarket(assetId, label, maxLeverage, maintenanceMarginBps, takerFeeBps)
         PerpEngine perp = new PerpEngine(
             address(vault),
             address(priceFeed),
@@ -39,19 +88,45 @@ contract Deploy is Script {
             deployer,
             deployer
         );
-        perp.addMarket(keccak256("ETH/USD"), "ETH-PERP", 20, 5, 2);
-        perp.addMarket(keccak256("BTC/USD"), "BTC-PERP", 20, 5, 2);
-        perp.addMarket(keccak256("SOL/USD"), "SOL-PERP", 20, 5, 2);
+        perp.addMarket(keccak256("ETH/USD"),   "ETH-PERP",   20, 5, 6);
+        perp.addMarket(keccak256("BTC/USD"),   "BTC-PERP",   20, 5, 6);
+        perp.addMarket(keccak256("SOL/USD"),   "SOL-PERP",   20, 5, 6);
+        perp.addMarket(keccak256("DOGE/USD"),  "DOGE-PERP",  10, 5, 6);
+        perp.addMarket(keccak256("AVAX/USD"),  "AVAX-PERP",  10, 5, 6);
+        perp.addMarket(keccak256("LINK/USD"),  "LINK-PERP",  10, 5, 6);
+        perp.addMarket(keccak256("cbBTC/USD"), "cbBTC-PERP", 20, 5, 6);
+        perp.addMarket(keccak256("cbETH/USD"), "cbETH-PERP", 20, 5, 6);
+        perp.addMarket(keccak256("AERO/USD"),  "AERO-PERP",  10, 5, 6);
+        perp.addMarket(keccak256("ARB/USD"),   "ARB-PERP",   10, 5, 6);
+        perp.addMarket(keccak256("POL/USD"),   "POL-PERP",   10, 5, 6);
 
-        // 5. Authorise engines in vault
+        // ── 6. Authorize engines in vault ──────────────────────
         vault.setEngine(address(spot), true);
         vault.setEngine(address(perp), true);
 
         vm.stopBroadcast();
 
-        console.log("PriceFeed :", address(priceFeed));
-        console.log("Vault     :", address(vault));
-        console.log("Spot      :", address(spot));
-        console.log("Perp      :", address(perp));
+        // ── Output addresses ───────────────────────────────────
+        console.log("=== BaseDEX Testnet Deployment ===");
+        console.log("Network    : Base Sepolia (84532)");
+        console.log("Deployer   :", deployer);
+        console.log("");
+        console.log("PriceFeed  :", address(priceFeed));
+        console.log("Vault      :", address(vault));
+        console.log("SpotEngine :", address(spot));
+        console.log("PerpEngine :", address(perp));
+        console.log("");
+        console.log("--- Mock Tokens ---");
+        console.log("MockUSDT   :", address(mockUSDT));
+        console.log("MockBTC    :", address(mockBTC));
+        console.log("MockSOL    :", address(mockSOL));
+        console.log("MockDOGE   :", address(mockDOGE));
+        console.log("MockAVAX   :", address(mockAVAX));
+        console.log("MockLINK   :", address(mockLINK));
+        console.log("MockAERO   :", address(mockAERO));
+        console.log("");
+        console.log("NEXT_PUBLIC_VAULT_ADDRESS=", address(vault));
+        console.log("NEXT_PUBLIC_SPOT_ENGINE_ADDRESS=", address(spot));
+        console.log("NEXT_PUBLIC_PERP_ENGINE_ADDRESS=", address(perp));
     }
 }

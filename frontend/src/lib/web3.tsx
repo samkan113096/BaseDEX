@@ -6,13 +6,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RainbowKitProvider, getDefaultConfig, darkTheme } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 
-const isProd = process.env.NEXT_PUBLIC_ENV === 'production' || process.env.NODE_ENV === 'production';
+// NEXT_PUBLIC_CHAIN_ID=84532  → Base Sepolia (testnet)
+// NEXT_PUBLIC_CHAIN_ID=8453   → Base mainnet  (production)
+// Falls back to: production env → mainnet, otherwise → sepolia
+const targetChainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID ?? 0);
+const useMainnet =
+  targetChainId === 8453 ||
+  (targetChainId === 0 && (process.env.NEXT_PUBLIC_ENV === 'production' || process.env.NODE_ENV === 'production'));
 
 const config = getDefaultConfig({
   appName:    'BaseDEX',
   projectId:  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? 'demo',
-  // Production: Base mainnet first; dev: Sepolia first for testing
-  chains:     isProd ? [base, baseSepolia] : [baseSepolia, base],
+  chains:     useMainnet ? [base, baseSepolia] : [baseSepolia, base],
   transports: {
     [base.id]:        http(process.env.NEXT_PUBLIC_BASE_RPC_URL),
     [baseSepolia.id]: http(process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL),

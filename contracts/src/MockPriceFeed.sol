@@ -16,12 +16,18 @@ contract MockPriceFeed is IPriceFeed {
     address public owner;
     mapping(bytes32 => Price) private _prices;
 
-    // Pre-defined asset IDs matching the backend's market config
-    bytes32 public constant ETH_USD  = keccak256("ETH/USD");
-    bytes32 public constant BTC_USD  = keccak256("BTC/USD");
-    bytes32 public constant SOL_USD  = keccak256("SOL/USD");
-    bytes32 public constant ARB_USD  = keccak256("ARB/USD");
-    bytes32 public constant OP_USD   = keccak256("OP/USD");
+    // Asset IDs matching the backend's market config
+    bytes32 public constant ETH_USD   = keccak256("ETH/USD");
+    bytes32 public constant BTC_USD   = keccak256("BTC/USD");
+    bytes32 public constant SOL_USD   = keccak256("SOL/USD");
+    bytes32 public constant DOGE_USD  = keccak256("DOGE/USD");
+    bytes32 public constant AVAX_USD  = keccak256("AVAX/USD");
+    bytes32 public constant LINK_USD  = keccak256("LINK/USD");
+    bytes32 public constant CBBTC_USD = keccak256("cbBTC/USD");
+    bytes32 public constant CBETH_USD = keccak256("cbETH/USD");
+    bytes32 public constant AERO_USD  = keccak256("AERO/USD");
+    bytes32 public constant ARB_USD   = keccak256("ARB/USD");
+    bytes32 public constant POL_USD   = keccak256("POL/USD");
 
     event PriceUpdated(bytes32 indexed assetId, int256 price, uint256 updatedAt);
 
@@ -32,12 +38,18 @@ contract MockPriceFeed is IPriceFeed {
 
     constructor() {
         owner = msg.sender;
-        // Seed with reasonable starting prices
-        _set(ETH_USD,  int256(3_000e8), 5e5);
-        _set(BTC_USD,  int256(65_000e8), 50e5);
-        _set(SOL_USD,  int256(160e8), 2e5);
-        _set(ARB_USD,  int256(1_10e6), 1e5);   // $1.10
-        _set(OP_USD,   int256(2_50e6), 1e5);   // $2.50
+        // Seed with approximate market prices (8 decimals, same as Chainlink)
+        _set(ETH_USD,   int256(3_000_00000000),  50_00000);   // $3,000
+        _set(BTC_USD,   int256(97_000_00000000), 500_00000);  // $97,000
+        _set(SOL_USD,   int256(175_00000000),    2_00000);    // $175
+        _set(DOGE_USD,  int256(16000000),        1000);        // $0.16
+        _set(AVAX_USD,  int256(35_00000000),     50000);      // $35
+        _set(LINK_USD,  int256(14_00000000),     20000);      // $14
+        _set(CBBTC_USD, int256(97_000_00000000), 500_00000);  // $97,000 (tracks BTC)
+        _set(CBETH_USD, int256(3_200_00000000),  60_00000);   // $3,200 (tracks ETH)
+        _set(AERO_USD,  int256(85000000),        5000);       // $0.85
+        _set(ARB_USD,   int256(62000000),        3000);       // $0.62
+        _set(POL_USD,   int256(38000000),        2000);       // $0.38
     }
 
     function setPrice(bytes32 assetId, int256 price, uint256 conf) external onlyOwner {
