@@ -1,3 +1,5 @@
+'use client';
+
 import { Shield, Zap, Globe, Code2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
@@ -82,7 +84,7 @@ export function AboutSection() {
             <div className="grid grid-cols-2 gap-3 mb-10">
               {STATS.map((s, i) => (
                 <div key={i} className="bg-[#0d0d22] border border-[#1a1a35] rounded-2xl p-5 hover:border-[#2a2a45] transition-colors group">
-                  <div className="text-white font-black text-xl mb-1 group-hover:text-gradient transition-all">{s.value}</div>
+                  <div className="text-white font-black text-xl mb-1 group-hover:text-blue-400 transition-colors">{s.value}</div>
                   <div className="text-[#4a5068] text-xs font-semibold uppercase tracking-wide">{s.label}</div>
                 </div>
               ))}

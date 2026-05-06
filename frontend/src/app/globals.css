@@ -74,31 +74,31 @@
   }
 
   .panel {
-    background: var(--bg-raised);
-    border: 1px solid var(--border);
+    background: #0d0d22 !important;
+    border: 1px solid #1a1a35 !important;
     border-radius: 12px;
   }
 
   .panel-sm {
-    background: var(--bg-raised);
-    border: 1px solid var(--border);
+    background: #0d0d22 !important;
+    border: 1px solid #1a1a35 !important;
     border-radius: 8px;
   }
 
   .surface {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-dim);
+    background: #09091a !important;
+    border: 1px solid #111128 !important;
     border-radius: 10px;
   }
 
   /* ── Text gradients ─────────────────────────────────────── */
   .text-gradient {
-    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #60a5fa 100%);
-    background-size: 200% auto;
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: shimmer-text 4s linear infinite;
+    /* Fallback: if bg-clip not supported, show blue */
+    color: #60a5fa;
   }
 
   .text-gradient-gold {

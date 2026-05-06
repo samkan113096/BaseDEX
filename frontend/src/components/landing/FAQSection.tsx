@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, HelpCircle } from 'lucide-react';
 
 const FAQS = [
   { q: 'What is BaseDEX?', a: 'BaseDEX is a decentralized perpetual futures and spot exchange built on Base network. It uses an off-chain matching engine for fast order execution and on-chain smart contracts for trustless settlement — no KYC, self-custody of funds.' },
@@ -25,45 +25,80 @@ export function FAQSection() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="py-24 bg-[#08081a]">
+    <section id="faq" className="py-24 relative overflow-hidden" style={{ background: '#07071a' }}>
+      <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(42,42,85,0.8), transparent)' }} />
+
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* Header */}
         <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-semibold mb-4">
+          <div
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-violet-400 text-xs font-bold mb-6 uppercase tracking-wider"
+            style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }}
+          >
+            <HelpCircle size={12} />
             FAQ
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="text-[#6a6a8a]">
-            Everything you need to know about BaseDEX. Can't find your answer? Join us on Telegram.
+          <p className="text-[#6a7090] text-base">
+            Everything you need to know. Can&apos;t find your answer? Join us on{' '}
+            <a href="https://t.me/BaseDEXOfficial" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:text-violet-300 transition-colors font-semibold">
+              Telegram
+            </a>.
           </p>
         </div>
 
+        {/* Accordion */}
         <div className="space-y-2">
-          {FAQS.map((faq, i) => (
-            <div
-              key={i}
-              className={`panel overflow-hidden transition-all ${open === i ? 'border-blue-500/30' : ''}`}
-            >
-              <button
-                onClick={() => setOpen(open === i ? null : i)}
-                className="w-full flex items-center justify-between px-5 py-4 text-left"
+          {FAQS.map((faq, i) => {
+            const isOpen = open === i;
+            return (
+              <div
+                key={i}
+                style={{
+                  background:   isOpen ? '#0f0f25' : '#0a0a1e',
+                  border:       `1px solid ${isOpen ? 'rgba(96,165,250,0.3)' : 'rgba(26,26,53,1)'}`,
+                  borderRadius: '14px',
+                  overflow:     'hidden',
+                  transition:   'border-color 0.2s, background 0.2s',
+                }}
               >
-                <span className={`font-semibold text-sm transition-colors ${open === i ? 'text-blue-400' : 'text-white'}`}>
-                  {faq.q}
-                </span>
-                <ChevronDown
-                  size={16}
-                  className={`text-[#4a4a6a] shrink-0 ml-4 transition-transform duration-200 ${open === i ? 'rotate-180 text-blue-400' : ''}`}
-                />
-              </button>
-              {open === i && (
-                <div className="px-5 pb-5 text-[#6a6a8a] text-sm leading-relaxed border-t border-[#1e1e3a] pt-4">
-                  {faq.a}
-                </div>
-              )}
-            </div>
-          ))}
+                <button
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  className="w-full flex items-center justify-between px-5 py-4 text-left"
+                >
+                  <span
+                    className="font-semibold text-sm pr-4 leading-snug"
+                    style={{ color: isOpen ? '#93c5fd' : '#e8eaf0' }}
+                  >
+                    {faq.q}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className="shrink-0 transition-transform duration-200"
+                    style={{
+                      color:     isOpen ? '#60a5fa' : '#4a5068',
+                      transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    }}
+                  />
+                </button>
+                {isOpen && (
+                  <div
+                    className="px-5 pb-5 text-sm leading-relaxed"
+                    style={{
+                      color:      '#8890a8',
+                      borderTop:  '1px solid rgba(26,26,53,1)',
+                      paddingTop: '1rem',
+                    }}
+                  >
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
