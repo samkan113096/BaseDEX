@@ -84,8 +84,9 @@ export function TradeHeader() {
 
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2 shrink-0 mr-1 group">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-shadow">
-          <span className="text-white font-black text-sm select-none">B</span>
+        <div className="relative w-7 h-7 rounded-lg overflow-hidden shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-shadow">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/logo-icon.png" alt="BaseDEX" className="w-full h-full object-cover" />
         </div>
         <span className="text-white font-bold text-[15px] tracking-tight hidden sm:block group-hover:text-blue-400 transition-colors">
           BaseDEX
