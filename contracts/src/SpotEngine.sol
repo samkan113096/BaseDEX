@@ -123,6 +123,10 @@ contract SpotEngine is ReentrancyGuard, Ownable {
         Market memory mkt = markets[buyOrder.marketId];
         require(mkt.active, "market inactive");
 
+        require(fillBaseAmount > 0,                              "zero fill");
+        require(fillBaseAmount <= buyOrder.baseAmount,           "fill exceeds buy order");
+        require(fillBaseAmount <= sellOrder.baseAmount,          "fill exceeds sell order");
+
         bytes32 buyHash  = _hash(buyOrder);
         bytes32 sellHash = _hash(sellOrder);
         require(!filledOrders[buyHash] && !filledOrders[sellHash], "already filled");

@@ -120,7 +120,17 @@ export const useDEXStore = create<DEXState>()(
     setTimeframe: (selectedTimeframe) => set({ selectedTimeframe }),
 
     setPrice: (sym, info) =>
-      set(s => ({ prices: { ...s.prices, [sym]: { ...(s.prices[sym] ?? {}), ...info } as PriceInfo } })),
+      set(s => {
+        const prev = s.prices[sym] ?? { price: 0, change24h: 0, high24h: 0, low24h: 0 };
+        // Never overwrite existing fields with undefined — only merge defined values
+        const merged: PriceInfo = {
+          price:     info.price     !== undefined ? info.price     : prev.price,
+          change24h: info.change24h !== undefined ? info.change24h : prev.change24h,
+          high24h:   info.high24h   !== undefined ? info.high24h   : prev.high24h,
+          low24h:    info.low24h    !== undefined ? info.low24h    : prev.low24h,
+        };
+        return { prices: { ...s.prices, [sym]: merged } };
+      }),
 
     setOrderBook: (bids, asks) => set({ bids, asks }),
 

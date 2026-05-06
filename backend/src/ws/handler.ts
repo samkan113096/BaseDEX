@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { WebSocket } from '@fastify/websocket';
 import { engine } from '../engine/matching.js';
-import { oracle } from '../services/oracle.js';
+import { oracle, priceChanges, highPrices24h, lowPrices24h } from '../services/oracle.js';
 import { toJSON } from '../lib/json.js';
 
 type Subscription = {
@@ -47,7 +47,13 @@ export function registerWsRoutes(app: FastifyInstance) {
   );
 
   oracle.on('price', ({ symbol, price }) => {
-    broadcastAll('price', { symbol, price });
+    broadcastAll('price', {
+      symbol,
+      price,
+      change24h: priceChanges[symbol]  ?? 0,
+      high24h:   highPrices24h[symbol] ?? price,
+      low24h:    lowPrices24h[symbol]  ?? price,
+    });
   });
 
   // WebSocket endpoint

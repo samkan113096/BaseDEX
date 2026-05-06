@@ -14,27 +14,32 @@ export function useMarketDataSocket() {
   useEffect(() => {
     const interval = TIMEFRAME_INTERVALS[store.selectedTimeframe];
     fetch(`${API_URL}/api/candles/${store.selectedMarket}?interval=${interval}&limit=300`)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(data => { if (Array.isArray(data)) store.setCandles(data); })
       .catch(() => {});
 
     fetch(`${API_URL}/api/trades/${store.selectedMarket}?limit=50`)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(data => { if (Array.isArray(data)) store.setRecentTrades(data); })
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [store.selectedMarket, store.selectedTimeframe]);
 
-  // Fetch prices from REST (initial)
+  // Fetch prices from REST (initial + periodic refresh every 30s)
   useEffect(() => {
-    fetch(`${API_URL}/api/prices`)
-      .then(r => r.json())
-      .then((data: Record<string, { price: number; change24h: number; high24h: number; low24h: number }>) => {
-        for (const [sym, info] of Object.entries(data)) {
-          store.setPrice(sym, info);
-        }
-      })
-      .catch(() => {});
+    function loadPrices() {
+      fetch(`${API_URL}/api/prices`)
+        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+        .then((data: Record<string, { price: number; change24h: number; high24h: number; low24h: number }>) => {
+          for (const [sym, info] of Object.entries(data)) {
+            store.setPrice(sym, info);
+          }
+        })
+        .catch(() => {});
+    }
+    loadPrices();
+    const interval = setInterval(loadPrices, 30_000);
+    return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -74,8 +79,13 @@ export function useMarketDataSocket() {
               if (msg.marketId === store.selectedMarket) store.updateCandle(msg.data as Parameters<typeof store.updateCandle>[0]);
               break;
             case 'price': {
-              const d = msg.data as { symbol: string; price: number; change?: number };
-              store.setPrice(d.symbol, { price: d.price, change24h: d.change });
+              const d = msg.data as { symbol: string; price: number; change24h?: number; high24h?: number; low24h?: number };
+              store.setPrice(d.symbol, {
+                price:     d.price,
+                ...(d.change24h !== undefined && { change24h: d.change24h }),
+                ...(d.high24h   !== undefined && { high24h:   d.high24h   }),
+                ...(d.low24h    !== undefined && { low24h:    d.low24h    }),
+              });
               break;
             }
           }

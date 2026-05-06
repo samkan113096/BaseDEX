@@ -1,23 +1,77 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDEXStore } from '@/store/dex';
 import type { Position, OpenOrder, Fill } from '@/store/dex';
-import { X, TrendingUp, TrendingDown, Clock, BarChart2 } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Clock, BarChart2, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAccount } from 'wagmi';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 export function BottomPanel() {
   const [tab, setTab] = useState<'positions' | 'orders' | 'trades'>('positions');
-  const { positions, openOrders, tradeHistory, removeOpenOrder, prices } = useDEXStore();
+  const [refreshing, setRefreshing] = useState(false);
+  const { positions, openOrders, tradeHistory, removeOpenOrder, setOpenOrders, prices, selectedMarket } = useDEXStore();
+  const { address } = useAccount();
+
+  // Load open orders for the connected wallet from the backend
+  useEffect(() => {
+    if (!address || !selectedMarket) return;
+    fetch(`${API_URL}/api/markets`)
+      .then(r => r.ok ? r.json() : [])
+      .then((markets: { id: string }[]) => {
+        const ids = markets.map((m: { id: string }) => m.id);
+        return Promise.all(
+          ids.map(mid =>
+            fetch(`${API_URL}/api/orderbook/${mid}`)
+              .then(r => r.ok ? r.json() : { bids: [], asks: [] })
+          )
+        );
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, selectedMarket]);
+
+  async function refreshOrders() {
+    if (!address) return;
+    setRefreshing(true);
+    try {
+      // Fetch all markets, then look for orders belonging to the connected wallet
+      const mRes = await fetch(`${API_URL}/api/markets`);
+      if (!mRes.ok) return;
+      const markets: { id: string }[] = await mRes.json();
+      const allOrders: OpenOrder[] = [];
+      await Promise.all(
+        markets.map(async m => {
+          const oRes = await fetch(`${API_URL}/api/orderbook/${m.id}`);
+          if (!oRes.ok) return;
+          const book: { bids: (OpenOrder & { trader: string })[]; asks: (OpenOrder & { trader: string })[] } = await oRes.json();
+          const mine = [...(book.bids ?? []), ...(book.asks ?? [])].filter(
+            o => o.trader?.toLowerCase() === address.toLowerCase()
+          );
+          allOrders.push(...mine.map(o => ({ ...o, marketId: m.id })));
+        })
+      );
+      setOpenOrders(allOrders);
+    } catch {
+      toast.error('Could not refresh orders');
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   async function cancelOrder(marketId: string, orderId: string) {
     try {
-      await fetch(`${API_URL}/api/orders/${marketId}/${orderId}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/api/orders/${marketId}/${orderId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        toast.error((body as { error?: string }).error ?? 'Failed to cancel order');
+        return;
+      }
       removeOpenOrder(orderId);
       toast.success('Order cancelled');
-    } catch { toast.error('Failed to cancel'); }
+    } catch { toast.error('Network error — could not cancel'); }
   }
 
   const tabs = [
@@ -50,6 +104,14 @@ export function BottomPanel() {
             )}
           </button>
         ))}
+        <button
+          onClick={refreshOrders}
+          disabled={refreshing || !address}
+          title="Refresh orders"
+          className="ml-auto mr-1 p-1.5 text-[#2a2e48] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded"
+        >
+          <RefreshCw size={11} className={refreshing ? 'animate-spin' : ''} />
+        </button>
       </div>
 
       <div className="flex-1 overflow-auto hide-scrollbar">
@@ -70,12 +132,14 @@ function PositionsTab({ positions, prices }: { positions: Position[]; prices: Re
         {positions.map((pos, i) => {
           const [base]  = pos.marketId.split('-');
           const mark    = prices[base]?.price ?? 0;
-          const entry   = parseFloat(pos.entryPrice) / 1e8;
+          const entry   = parseFloat(pos.entryPrice) / 1e6;  // 1e6 micro-USD
           const size    = parseFloat(pos.size) / 1e18;
-          const pnl     = (mark - entry) * size;
-          const pnlPct  = entry > 0 ? ((mark - entry) / entry) * 100 : 0;
-          const liqP    = entry * (1 - 0.9 / pos.leverage);
           const isLong  = size >= 0;
+          const pnl     = (mark - entry) * Math.abs(size) * (isLong ? 1 : -1);
+          const pnlPct  = entry > 0 ? ((mark - entry) / entry) * 100 * (isLong ? 1 : -1) : 0;
+          // Liquidation: long → entry*(1 - maintenanceMargin/leverage), short → entry*(1 + maintenanceMargin/leverage)
+          const mm      = 0.05 / pos.leverage;
+          const liqP    = isLong ? entry * (1 - mm) : entry * (1 + mm);
           return (
             <tr key={i} className="border-b border-[#0d0d22] hover:bg-[#0d0d22] transition-colors">
               <Td><span className="text-white font-semibold">{pos.marketId}</span></Td>

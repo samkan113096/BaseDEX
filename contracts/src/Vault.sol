@@ -61,6 +61,7 @@ contract Vault is IVault, ReentrancyGuard, Ownable {
 
     function credit(address user, address token, uint256 amount) external override {
         require(authorizedEngines[msg.sender], "not engine");
+        require(whitelistedTokens[token], "token not whitelisted");
         _balances[token][user] += amount;
     }
 

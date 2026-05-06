@@ -1,17 +1,40 @@
 'use client';
 
 import { useDEXStore } from '@/store/dex';
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+
+interface Stats24h {
+  totalVolume:  number;
+  totalTrades:  number;
+  openInterest: number;
+  markets:      Record<string, { volume: number; trades: number; funding: number }>;
+}
 
 export function MarketStats() {
   const { selectedMarket, prices, bids, asks } = useDEXStore();
+  const [stats, setStats] = useState<Stats24h | null>(null);
   const [base] = selectedMarket.split('-');
   const info     = prices[base];
   const price    = info?.price    ?? 0;
   const change   = info?.change24h ?? 0;
-  const high24h  = info?.high24h  ?? price * 1.03;
-  const low24h   = info?.low24h   ?? price * 0.97;
+  const high24h  = info?.high24h  ?? 0;
+  const low24h   = info?.low24h   ?? 0;
   const isPerp   = selectedMarket.endsWith('-PERP');
+
+  // Fetch real stats from backend
+  useEffect(() => {
+    function loadStats() {
+      fetch(`${API_URL}/api/stats`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => { if (data) setStats(data as Stats24h); })
+        .catch(() => {});
+    }
+    loadStats();
+    const id = setInterval(loadStats, 15_000);
+    return () => clearInterval(id);
+  }, []);
 
   // Compute best bid/ask spread from live orderbook
   const { spread, spreadPct } = useMemo(() => {
@@ -23,18 +46,10 @@ export function MarketStats() {
     return { spread: (a - b).toFixed(a > 1000 ? 2 : 4), spreadPct: (((a - b) / a) * 100).toFixed(3) };
   }, [bids, asks]);
 
-  // Realistic volume based on market size
-  const volume24h = useMemo(() => {
-    const base = price * (selectedMarket.includes('BTC') ? 8 : selectedMarket.includes('ETH') ? 1200 : 3000);
-    return base;
-  }, [price, selectedMarket]);
-
-  const oi     = volume24h * 0.28;
-  const funding = useMemo(() => {
-    // Seed a consistent realistic funding rate per market
-    const seed = selectedMarket.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    return ((seed % 100 - 50) / 10000).toFixed(4);
-  }, [selectedMarket]);
+  const mktStats    = stats?.markets?.[selectedMarket];
+  const volume24h   = mktStats?.volume   ?? 0;
+  const oi          = stats?.openInterest ?? 0;
+  const fundingRate = mktStats?.funding   ?? 0;
 
   const fmt = (n: number) =>
     n >= 1_000_000
@@ -52,10 +67,10 @@ export function MarketStats() {
         valueClass={change >= 0 ? 'text-emerald-400' : 'text-red-400'}
       />
       <Sep />
-      <Stat label="24h High" value={`$${high24h.toLocaleString(undefined, { maximumFractionDigits: high24h < 10 ? 4 : 2 })}`} />
-      <Stat label="24h Low"  value={`$${low24h.toLocaleString(undefined, { maximumFractionDigits: low24h < 10 ? 4 : 2 })}`} />
+      <Stat label="24h High" value={high24h > 0 ? `$${high24h.toLocaleString(undefined, { maximumFractionDigits: high24h < 10 ? 4 : 2 })}` : '—'} />
+      <Stat label="24h Low"  value={low24h  > 0 ? `$${low24h.toLocaleString(undefined,  { maximumFractionDigits: low24h  < 10 ? 4 : 2 })}` : '—'} />
       <Sep />
-      <Stat label="24h Volume" value={fmt(volume24h)} />
+      <Stat label="24h Volume" value={volume24h > 0 ? fmt(volume24h) : '—'} />
 
       {spread && (
         <>
@@ -67,11 +82,11 @@ export function MarketStats() {
       {isPerp && (
         <>
           <Sep />
-          <Stat label="Open Interest" value={fmt(oi)} />
+          <Stat label="Open Interest" value={oi > 0 ? fmt(oi) : '—'} />
           <Stat
             label="Funding / 8h"
-            value={`${Number(funding) >= 0 ? '+' : ''}${(Number(funding) * 100).toFixed(4)}%`}
-            valueClass={Number(funding) >= 0 ? 'text-emerald-400' : 'text-red-400'}
+            value={`${fundingRate >= 0 ? '+' : ''}${(fundingRate * 100).toFixed(4)}%`}
+            valueClass={fundingRate >= 0 ? 'text-emerald-400' : 'text-red-400'}
           />
         </>
       )}

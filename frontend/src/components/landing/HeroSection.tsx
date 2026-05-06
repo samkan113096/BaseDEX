@@ -76,7 +76,7 @@ export function HeroSection() {
           </div>
 
           {/* ── Trust badges ────────────────────────────────────── */}
-          <div className="flex flex-wrap items-center justify-center gap-5 text-sm text-[#4a5068]">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[#4a5068]">
             {[
               { icon: <Shield size={14} />,     text: 'Non-custodial',     color: 'text-blue-400'    },
               { icon: <Zap size={14} />,        text: '< 200ms fills',     color: 'text-emerald-400' },
@@ -88,6 +88,21 @@ export function HeroSection() {
                 <span className="text-[#8890a8] text-xs font-medium">{b.text}</span>
               </div>
             ))}
+          </div>
+
+          {/* ── Audit security banner ─────────────────────────── */}
+          <div className="mt-8 inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/15 text-sm">
+            <div className="flex items-center gap-1.5 text-emerald-400">
+              <Shield size={15} />
+              <span className="font-bold">Audited</span>
+            </div>
+            <div className="w-px h-4 bg-emerald-500/20" />
+            <span className="text-[#6a7090] text-xs">
+              Smart contracts &amp; backend reviewed — 17 findings, all resolved
+            </span>
+            <Link href="/audit" className="text-emerald-400 hover:text-emerald-300 text-xs font-semibold transition-colors shrink-0">
+              View Report →
+            </Link>
           </div>
         </div>
 

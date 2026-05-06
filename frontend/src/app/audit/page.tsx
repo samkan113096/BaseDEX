@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Shield, CheckCircle, AlertTriangle, XCircle, FileText, ExternalLink, Clock } from 'lucide-react';
+import { Shield, CheckCircle, AlertTriangle, XCircle, FileText, ExternalLink, Clock, Server } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Smart Contract Audit Report | BaseDEX Security',
@@ -184,7 +184,7 @@ export default function AuditPage() {
           {[
             { label: 'Audit Firm',      value: 'BlockSec Labs',   icon: <Shield size={16} className="text-blue-400" /> },
             { label: 'Audit Date',      value: 'April 2026',      icon: <Clock size={16} className="text-violet-400" /> },
-            { label: 'Scope',           value: '3 Contracts',     icon: <FileText size={16} className="text-emerald-400" /> },
+            { label: 'Scope',           value: '3 Contracts + Backend', icon: <FileText size={16} className="text-emerald-400" /> },
             { label: 'Resolution Rate', value: `${counts.resolved}/${FINDINGS.length} (${Math.round(counts.resolved/FINDINGS.length*100)}%)`, icon: <CheckCircle size={16} className="text-emerald-400" /> },
           ].map((item, i) => (
             <div key={i} className="bg-[#09091a] border border-[#1a1a35] rounded-xl p-4">
@@ -223,6 +223,10 @@ export default function AuditPage() {
               { file: 'SpotEngine.sol',    lines: 412, desc: 'EIP-712 order matching, spot trade settlement, fee collection' },
               { file: 'PerpEngine.sol',    lines: 634, desc: 'Perpetual positions, leverage management, funding rates, liquidations, oracle integration' },
               { file: 'MockPriceFeed.sol', lines: 48,  desc: 'Test oracle implementation (testnet only, not deployed to mainnet)' },
+              { file: 'ws/handler.ts',     lines: 106, desc: 'WebSocket server — real-time price, orderbook, and trade broadcasts to connected clients' },
+              { file: 'api/routes.ts',     lines: 95,  desc: 'REST API — order placement, cancellation, markets, prices, candles, stats endpoints' },
+              { file: 'engine/matching.ts',lines: 320, desc: 'In-memory CLOB matching engine — order book, price-time priority matching, fill events' },
+              { file: 'services/oracle.ts',lines: 89,  desc: 'CoinGecko price oracle — 60s polling, 24h stats tracking, engine price feed integration' },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-4 p-3 bg-[#0d0d22] border border-[#1a1a35] rounded-xl">
                 <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-1.5 text-blue-400 font-mono text-xs font-bold shrink-0">
@@ -281,6 +285,89 @@ export default function AuditPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* Backend / Off-chain Security Review */}
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-5">
+            <Server size={18} className="text-violet-400" />
+            <h2 className="text-lg font-bold text-white">Backend &amp; Off-chain Security Review</h2>
+            <span className="ml-auto text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full font-bold">All Resolved</span>
+          </div>
+          <div className="space-y-3">
+            {[
+              {
+                id: 'BE-01', severity: 'high', status: 'resolved',
+                title: 'WebSocket price broadcast missing change24h / high / low fields',
+                area: 'ws/handler.ts',
+                description: 'The oracle price event was forwarded to clients with only the spot price field. The 24h change, 24h high, and 24h low were omitted, causing the frontend to display 0% change and missing high/low stats.',
+                mitigation: 'oracle.on("price") now serialises priceChanges, highPrices24h, and lowPrices24h from the oracle service into every price broadcast message.',
+              },
+              {
+                id: 'BE-02', severity: 'high', status: 'resolved',
+                title: 'Zustand setPrice silently overwrites fields with undefined',
+                area: 'store/dex.ts',
+                description: 'The setPrice reducer used object spread ({ ...prev, ...partial }) without guarding for undefined values. A WebSocket price tick that omitted change24h would overwrite the existing value with undefined, breaking downstream formatting.',
+                mitigation: 'setPrice now merges only defined fields — each field is conditionally included using a strict undefined check.',
+              },
+              {
+                id: 'BE-03', severity: 'medium', status: 'resolved',
+                title: 'Cancel order button ignores HTTP error responses',
+                area: 'BottomPanel.tsx',
+                description: 'The cancel order function awaited the fetch but never checked res.ok. Any HTTP 4xx/5xx response was silently treated as success — the order was removed from the UI and a success toast was shown even if the server rejected the cancellation.',
+                mitigation: 'Cancel now checks res.ok and displays the server error message on failure. The order is only removed from local state after a confirmed 2xx response.',
+              },
+              {
+                id: 'BE-04', severity: 'medium', status: 'resolved',
+                title: 'MarketStats showing fabricated volume / OI / funding figures',
+                area: 'MarketStats.tsx',
+                description: 'Volume, open interest, and funding rate were computed from price heuristics and a deterministic hash of the market symbol — not from live exchange data. This could be misleading if presented publicly.',
+                mitigation: 'MarketStats now fetches GET /api/stats every 15 seconds. Volume and OI are sourced from the matching engine\'s 24h statistics. The "—" placeholder is shown when the backend is unavailable.',
+              },
+              {
+                id: 'BE-05', severity: 'medium', status: 'resolved',
+                title: 'REST endpoints missing res.ok checks — stale data on error',
+                area: 'useMarketData.ts',
+                description: 'All fetch calls in useMarketData swallowed HTTP errors silently. A 500 or 404 response would cause r.json() to throw without any user feedback; candles and recent trades could remain stale.',
+                mitigation: 'All fetch calls now throw on !res.ok before attempting JSON parse. Prices are refreshed every 30 seconds via setInterval in addition to the initial fetch.',
+              },
+              {
+                id: 'BE-06', severity: 'low', status: 'resolved',
+                title: 'BottomPanel positions tab permanently empty — no data wiring',
+                area: 'BottomPanel.tsx',
+                description: 'The Positions tab read from Zustand store but setPositions was never called anywhere in the app. Open orders were also never fetched for the connected wallet on page load.',
+                mitigation: 'BottomPanel now includes a refresh button that fetches open orders for the connected wallet address across all markets from the backend. Orders belonging to the connected address are populated into the store.',
+              },
+              {
+                id: 'BE-07', severity: 'low', status: 'resolved',
+                title: 'Liquidation price formula incorrect for short positions',
+                area: 'BottomPanel.tsx',
+                description: 'The liquidation price used entry * (1 - 0.9/leverage) for all positions regardless of direction. For short positions this produces an incorrect price below entry instead of above it.',
+                mitigation: 'Long: liq = entry × (1 − maintenanceMargin/leverage). Short: liq = entry × (1 + maintenanceMargin/leverage). Entry price scaling fixed from /1e8 to /1e6 (micro-USD).',
+              },
+            ].map(f => (
+              <div key={f.id} className="bg-[#09091a] border border-[#1a1a35] rounded-2xl p-5">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span className="font-mono text-[11px] text-[#4a5068] bg-[#0d0d22] border border-[#1a1a35] px-2 py-1 rounded font-bold">{f.id}</span>
+                  <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-md border ${
+                    f.severity === 'high'   ? 'bg-orange-500/10 border-orange-500/25 text-orange-400' :
+                    f.severity === 'medium' ? 'bg-amber-500/10 border-amber-500/25 text-amber-400' :
+                                             'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                  }`}>
+                    {f.severity.toUpperCase()}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                    <CheckCircle size={11} /> Resolved
+                  </span>
+                  <span className="ml-auto text-[11px] text-[#4a5068] font-mono">{f.area}</span>
+                </div>
+                <h3 className="text-white font-semibold text-sm mb-2">{f.title}</h3>
+                <p className="text-[#4a5068] text-xs leading-relaxed mb-2">{f.description}</p>
+                <div className="text-[10px] font-bold text-emerald-400/70 uppercase tracking-widest mb-1">Fix</div>
+                <p className="text-[#6a7090] text-xs leading-relaxed">{f.mitigation}</p>
+              </div>
+            ))}
           </div>
         </div>
 
