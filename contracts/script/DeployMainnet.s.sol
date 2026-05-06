@@ -102,11 +102,12 @@ contract DeployMainnet is Script {
         SpotEngine spot = new SpotEngine(address(vault), deployer, deployer);
 
         // Register spot markets (base token, quote token)
-        spot.addMarket(WETH,  USDC);  // market 0: ETH/USDC
-        spot.addMarket(WETH,  USDT);  // market 1: ETH/USDT
-        spot.addMarket(cbBTC, USDC);  // market 2: cbBTC/USDC
-        spot.addMarket(cbBTC, USDT);  // market 3: cbBTC/USDT
-        spot.addMarket(cbETH, USDC);  // market 4: cbETH/USDC
+        // addMarket(baseToken, quoteToken, baseDecimals)
+        spot.addMarket(WETH,  USDC, 18);  // market 0: ETH/USDC
+        spot.addMarket(WETH,  USDT, 18);  // market 1: ETH/USDT
+        spot.addMarket(cbBTC, USDC,  8);  // market 2: cbBTC/USDC  (cbBTC has 8 decimals)
+        spot.addMarket(cbBTC, USDT,  8);  // market 3: cbBTC/USDT
+        spot.addMarket(cbETH, USDC, 18);  // market 4: cbETH/USDC
         console.log("SpotEngine deployed at:", address(spot));
 
         // ── 3. Perp Engine ────────────────────────────────────────────────────

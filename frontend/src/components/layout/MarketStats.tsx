@@ -2,41 +2,51 @@
 
 import { useDEXStore } from '@/store/dex';
 import { useMemo, useEffect, useState } from 'react';
+import { apiPath } from '@/lib/api';
+import { TARGET_CHAIN_ID } from '@/lib/contracts';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
-
-interface Stats24h {
-  totalVolume:  number;
-  totalTrades:  number;
-  openInterest: number;
-  markets:      Record<string, { volume: number; trades: number; funding: number }>;
+interface MarketStat {
+  marketId:  string;
+  volume24h: number;
+  oi:        number;
+  funding:   number;
+  price:     number;
+  change24h: number;
+  high24h:   number;
+  low24h:    number;
 }
+
+const CHAIN_LABEL: Record<number, string> = {
+  8453:     'Base',
+  84532:    'Base Sepolia',
+  11155111: 'ETH Sepolia',
+};
 
 export function MarketStats() {
   const { selectedMarket, prices, bids, asks } = useDEXStore();
-  const [stats, setStats] = useState<Stats24h | null>(null);
+  const [stat, setStat] = useState<MarketStat | null>(null);
   const [base] = selectedMarket.split('-');
-  const info     = prices[base];
-  const price    = info?.price    ?? 0;
-  const change   = info?.change24h ?? 0;
-  const high24h  = info?.high24h  ?? 0;
-  const low24h   = info?.low24h   ?? 0;
-  const isPerp   = selectedMarket.endsWith('-PERP');
+  const info    = prices[base];
+  const price   = info?.price    ?? 0;
+  const change  = info?.change24h ?? 0;
+  const high24h = info?.high24h  ?? 0;
+  const low24h  = info?.low24h   ?? 0;
+  const isPerp  = selectedMarket.endsWith('-PERP');
 
-  // Fetch real stats from backend
+  // /api/stats?marketId=... returns a single object when marketId is specified
   useEffect(() => {
     function loadStats() {
-      fetch(`${API_URL}/api/stats`)
+      fetch(apiPath(`/api/stats?marketId=${encodeURIComponent(selectedMarket)}`))
         .then(r => r.ok ? r.json() : null)
-        .then(data => { if (data) setStats(data as Stats24h); })
+        .then((data: MarketStat | null) => { if (data?.marketId) setStat(data); })
         .catch(() => {});
     }
     loadStats();
     const id = setInterval(loadStats, 15_000);
     return () => clearInterval(id);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMarket]);
 
-  // Compute best bid/ask spread from live orderbook
   const { spread, spreadPct } = useMemo(() => {
     const bestAsk = asks[0];
     const bestBid = bids[0];
@@ -46,17 +56,15 @@ export function MarketStats() {
     return { spread: (a - b).toFixed(a > 1000 ? 2 : 4), spreadPct: (((a - b) / a) * 100).toFixed(3) };
   }, [bids, asks]);
 
-  const mktStats    = stats?.markets?.[selectedMarket];
-  const volume24h   = mktStats?.volume   ?? 0;
-  const oi          = stats?.openInterest ?? 0;
-  const fundingRate = mktStats?.funding   ?? 0;
+  const volume24h   = stat?.volume24h ?? 0;
+  const oi          = stat?.oi        ?? 0;
+  const fundingRate = stat?.funding   ?? 0;
+  const chainLabel  = CHAIN_LABEL[TARGET_CHAIN_ID] ?? `Chain ${TARGET_CHAIN_ID}`;
 
   const fmt = (n: number) =>
-    n >= 1_000_000
-      ? `$${(n / 1_000_000).toFixed(1)}M`
-      : n >= 1_000
-      ? `$${(n / 1_000).toFixed(0)}K`
-      : `$${n.toFixed(2)}`;
+    n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M`
+    : n >= 1_000   ? `$${(n / 1_000).toFixed(0)}K`
+    : `$${n.toFixed(2)}`;
 
   return (
     <div className="h-9 bg-[#09091a] border-b border-[#1a1a35] flex items-center px-4 gap-0 overflow-x-auto hide-scrollbar shrink-0">
@@ -91,10 +99,9 @@ export function MarketStats() {
         </>
       )}
 
-      {/* Network badge */}
       <div className="ml-auto flex items-center gap-1.5 shrink-0 pl-4">
-        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-        <span className="text-[9px] text-blue-400 font-bold uppercase tracking-widest">Base</span>
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest">{chainLabel}</span>
       </div>
     </div>
   );

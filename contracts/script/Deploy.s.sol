@@ -27,6 +27,8 @@ contract Deploy is Script {
     address constant WETH = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
 
     function run() external {
+        require(block.chainid == 11155111, "Deploy: wrong chain - expected Ethereum Sepolia (11155111)");
+
         uint256 deployerPk = vm.envUint("DEPLOYER_PRIVATE_KEY");
         address deployer   = vm.addr(deployerPk);
 
@@ -36,7 +38,7 @@ contract Deploy is Script {
         MockPriceFeed priceFeed = new MockPriceFeed();
 
         // ── 2. Mock ERC-20 tokens for spot pairs ──────────────
-        // (Base Sepolia doesn't have canonical BTC/SOL/DOGE tokens)
+        // (Ethereum Sepolia doesn't have canonical BTC/SOL/DOGE/etc. tokens)
         MockToken mockUSDT = new MockToken("Tether USD",     "USDT", 6);
         MockToken mockBTC  = new MockToken("Wrapped Bitcoin","WBTC", 8);
         MockToken mockSOL  = new MockToken("Wrapped SOL",    "SOL",  9);
@@ -69,17 +71,17 @@ contract Deploy is Script {
 
         // ── 4. Spot engine ─────────────────────────────────────
         SpotEngine spot = new SpotEngine(address(vault), deployer, deployer);
-        // ETH/USDC (canonical)
-        spot.addMarket(WETH,                address(mockUSDT));  // ETH/USDT
-        spot.addMarket(WETH,                USDC);               // ETH/USDC
-        spot.addMarket(address(mockBTC),    USDC);               // BTC/USDC
-        spot.addMarket(address(mockBTC),    address(mockUSDT));  // BTC/USDT
-        spot.addMarket(address(mockSOL),    USDC);               // SOL/USDC
-        spot.addMarket(address(mockSOL),    address(mockUSDT));  // SOL/USDT
-        spot.addMarket(address(mockDOGE),   USDC);               // DOGE/USDC
-        spot.addMarket(address(mockAVAX),   USDC);               // AVAX/USDC
-        spot.addMarket(address(mockLINK),   USDC);               // LINK/USDC
-        spot.addMarket(address(mockAERO),   USDC);               // AERO/USDC
+        // addMarket(baseToken, quoteToken, baseDecimals)
+        spot.addMarket(WETH,                address(mockUSDT), 18); // ETH/USDT
+        spot.addMarket(WETH,                USDC,              18); // ETH/USDC
+        spot.addMarket(address(mockBTC),    USDC,               8); // BTC/USDC
+        spot.addMarket(address(mockBTC),    address(mockUSDT),  8); // BTC/USDT
+        spot.addMarket(address(mockSOL),    USDC,               9); // SOL/USDC
+        spot.addMarket(address(mockSOL),    address(mockUSDT),  9); // SOL/USDT
+        spot.addMarket(address(mockDOGE),   USDC,               8); // DOGE/USDC
+        spot.addMarket(address(mockAVAX),   USDC,              18); // AVAX/USDC
+        spot.addMarket(address(mockLINK),   USDC,              18); // LINK/USDC
+        spot.addMarket(address(mockAERO),   USDC,              18); // AERO/USDC
 
         // ── 5. Perp engine ─────────────────────────────────────
         //      addMarket(assetId, label, maxLeverage, maintenanceMarginBps, takerFeeBps)

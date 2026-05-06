@@ -6,8 +6,7 @@ import type { Position, OpenOrder, Fill } from '@/store/dex';
 import { X, TrendingUp, TrendingDown, Clock, BarChart2, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAccount } from 'wagmi';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { apiPath } from '@/lib/api';
 
 export function BottomPanel() {
   const [tab, setTab] = useState<'positions' | 'orders' | 'trades'>('positions');
@@ -15,45 +14,24 @@ export function BottomPanel() {
   const { positions, openOrders, tradeHistory, removeOpenOrder, setOpenOrders, prices, selectedMarket } = useDEXStore();
   const { address } = useAccount();
 
-  // Load open orders for the connected wallet from the backend
+  // Load open orders for connected wallet on mount / address change
   useEffect(() => {
-    if (!address || !selectedMarket) return;
-    fetch(`${API_URL}/api/markets`)
+    if (!address) return;
+    fetch(apiPath(`/api/orders?trader=${address}`))
       .then(r => r.ok ? r.json() : [])
-      .then((markets: { id: string }[]) => {
-        const ids = markets.map((m: { id: string }) => m.id);
-        return Promise.all(
-          ids.map(mid =>
-            fetch(`${API_URL}/api/orderbook/${mid}`)
-              .then(r => r.ok ? r.json() : { bids: [], asks: [] })
-          )
-        );
-      })
+      .then((orders: OpenOrder[]) => { if (Array.isArray(orders)) setOpenOrders(orders); })
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, selectedMarket]);
+  }, [address]);
 
   async function refreshOrders() {
     if (!address) return;
     setRefreshing(true);
     try {
-      // Fetch all markets, then look for orders belonging to the connected wallet
-      const mRes = await fetch(`${API_URL}/api/markets`);
-      if (!mRes.ok) return;
-      const markets: { id: string }[] = await mRes.json();
-      const allOrders: OpenOrder[] = [];
-      await Promise.all(
-        markets.map(async m => {
-          const oRes = await fetch(`${API_URL}/api/orderbook/${m.id}`);
-          if (!oRes.ok) return;
-          const book: { bids: (OpenOrder & { trader: string })[]; asks: (OpenOrder & { trader: string })[] } = await oRes.json();
-          const mine = [...(book.bids ?? []), ...(book.asks ?? [])].filter(
-            o => o.trader?.toLowerCase() === address.toLowerCase()
-          );
-          allOrders.push(...mine.map(o => ({ ...o, marketId: m.id })));
-        })
-      );
-      setOpenOrders(allOrders);
+      const res = await fetch(apiPath(`/api/orders?trader=${address}`));
+      if (!res.ok) { toast.error('Could not refresh orders'); return; }
+      const orders: OpenOrder[] = await res.json();
+      setOpenOrders(Array.isArray(orders) ? orders : []);
     } catch {
       toast.error('Could not refresh orders');
     } finally {
@@ -63,7 +41,7 @@ export function BottomPanel() {
 
   async function cancelOrder(marketId: string, orderId: string) {
     try {
-      const res = await fetch(`${API_URL}/api/orders/${marketId}/${orderId}`, { method: 'DELETE' });
+      const res = await fetch(apiPath(`/api/orders/${marketId}/${orderId}`), { method: 'DELETE' });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         toast.error((body as { error?: string }).error ?? 'Failed to cancel order');

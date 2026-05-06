@@ -97,6 +97,10 @@ contract PerpEngine is ReentrancyGuard, Ownable {
     address public feeRecipient;
     address public insuranceFund;
 
+    /// @notice Total USDC margin currently locked in open positions (USDC atoms).
+    /// The vault must hold at least this amount for the engine address.
+    uint256 public totalMarginLocked;
+
     // ── Events ─────────────────────────────────────────────────────────────
 
     event MarketAdded(uint256 indexed id, string symbol);
@@ -162,6 +166,13 @@ contract PerpEngine is ReentrancyGuard, Ownable {
     function setPriceFeed(address _feed)    external onlyOwner { priceFeed = IPriceFeed(_feed); }
     function setFeeRecipient(address _fee)  external onlyOwner { feeRecipient = _fee; }
     function setInsuranceFund(address _ins) external onlyOwner { insuranceFund = _ins; }
+
+    /// @notice Owner deposits USDC into this engine's vault balance to back profitable positions.
+    ///         The USDC must already be in the caller's vault balance (call vault.deposit first).
+    function depositInsurance(uint256 amount) external onlyOwner {
+        vault.debit(msg.sender, usdc, amount);
+        vault.credit(address(this), usdc, amount);
+    }
 
     function setMarketActive(uint256 marketId, bool active) external onlyOwner {
         markets[marketId].active = active;
@@ -240,12 +251,22 @@ contract PerpEngine is ReentrancyGuard, Ownable {
         uint256 liqFee    = (notional * LIQ_FEE_BPS) / 10_000;
         uint256 remaining = equity > 0 ? uint256(equity) : 0;
 
+        // Release the locked margin from engine's vault custody.
+        // remaining ≤ pos.margin (equity = margin + unrealizedPnl, and liquidation
+        // only triggers when equity < maintenanceMargin ≤ margin), so this never
+        // over-draws the engine's vault balance for losing positions.
+        // For shortfall (equity < 0), pos.margin absorbs the loss as protocol reserves.
+        if (pos.margin > 0) {
+            vault.debit(address(this), usdc, pos.margin);
+            totalMarginLocked -= pos.margin;
+        }
+
         if (remaining > liqFee) {
-            vault.credit(msg.sender, usdc, liqFee);
+            vault.credit(msg.sender,   usdc, liqFee);
             vault.credit(insuranceFund, usdc, remaining - liqFee);
         } else {
             if (remaining > 0) vault.credit(msg.sender, usdc, remaining);
-            // Shortfall is absorbed by the insurance fund (tracked off-chain)
+            // Any shortfall stays as reserves in the engine's insurance balance
         }
 
         emit Liquidated(marketId, trader, msg.sender, pos.size, remaining);
@@ -288,10 +309,13 @@ contract PerpEngine is ReentrancyGuard, Ownable {
         // Settle any accrued funding before changing position
         if (pos.size != 0) _settleFunding(order.marketId, order.trader);
 
-        // Collect margin from vault
+        // Collect margin from trader and custody it under this engine's vault balance.
+        // This ensures every credit on close/liquidation has a matching debit here.
         if (order.collateralDelta > 0) {
             vault.debit(order.trader, usdc, order.collateralDelta);
+            vault.credit(address(this), usdc, order.collateralDelta); // engine holds margin
             pos.margin += order.collateralDelta;
+            totalMarginLocked += order.collateralDelta;
         }
 
         int256 newSize  = pos.size + (order.isLong ? int256(order.sizeDelta) : -int256(order.sizeDelta));
@@ -302,10 +326,12 @@ contract PerpEngine is ReentrancyGuard, Ownable {
         uint256 maxNotional = pos.margin * mkt.maxLeverage;  // margin (1e6) × lever = USDC atoms × lever
         require(notional <= maxNotional, "leverage exceeded");
 
-        // Fee in USDC atoms
+        // Fee in USDC atoms — deducted from engine-held margin and paid to fee recipient
         uint256 fee = (_notional(int256(order.sizeDelta), markPrice) * mkt.takerFeeBps) / 10_000;
         require(pos.margin > fee, "insufficient margin for fee");
         pos.margin -= fee;
+        totalMarginLocked -= fee;
+        vault.debit(address(this), usdc, fee);  // engine releases fee from its custody
         vault.credit(feeRecipient, usdc, fee);
 
         pos.size           = newSize;
@@ -331,14 +357,23 @@ contract PerpEngine is ReentrancyGuard, Ownable {
         uint256 fee = (_notional(_abs(closedSize), markPrice) * mkt.takerFeeBps) / 10_000;
 
         if (isCloseFull) {
+            // Release margin from engine's custody before paying out
+            vault.debit(address(this), usdc, pos.margin);
+            totalMarginLocked -= pos.margin;
+
             int256 collateralReturn = int256(pos.margin) + pnl - int256(fee);
+            // Positive PnL beyond margin requires insurance fund balance in this engine's vault slot.
             if (collateralReturn > 0) vault.credit(order.trader, usdc, uint256(collateralReturn));
             vault.credit(feeRecipient, usdc, fee);
             delete positions[order.marketId][order.trader];
         } else {
             // Partial close: release margin proportional to closed size
             uint256 releasedMargin = (pos.margin * uint256(_abs(closedSize))) / uint256(_abs(pos.size));
-            int256  netReturn      = int256(releasedMargin) + pnl - int256(fee);
+
+            vault.debit(address(this), usdc, releasedMargin);
+            totalMarginLocked -= releasedMargin;
+
+            int256 netReturn = int256(releasedMargin) + pnl - int256(fee);
             if (netReturn > 0) vault.credit(order.trader, usdc, uint256(netReturn));
             vault.credit(feeRecipient, usdc, fee);
 

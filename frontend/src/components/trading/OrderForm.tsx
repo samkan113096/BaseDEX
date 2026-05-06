@@ -7,8 +7,9 @@ import { useDEXStore } from '@/store/dex';
 import { Info, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+import { apiPath } from '@/lib/api';
+
 const LEVERAGE_PRESETS = [1, 2, 3, 5, 10, 15, 20];
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 export function OrderForm() {
   const { address, isConnected } = useAccount();
@@ -69,21 +70,28 @@ export function OrderForm() {
         signature: '0x' + '0'.repeat(130),
       };
 
-      const res  = await fetch(`${API_URL}/api/orders`, {
+      const res  = await fetch(apiPath('/api/orders'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
+      // API returns the order object directly (flat), not { order: {...} }
       const data = await res.json() as {
-        order?: { id: string; side: 'buy' | 'sell'; type: 'limit' | 'market'; price: string; size: string; remainingSize: string; status: string; createdAt: number };
+        id?: string; side?: 'buy' | 'sell'; type?: 'limit' | 'market';
+        price?: string; size?: string; remainingSize?: string; status?: string; createdAt?: number;
         error?: string | object;
       };
 
       if (!res.ok) {
         toast.error(typeof data.error === 'string' ? data.error : 'Order failed');
-      } else if (data.order) {
-        addOpenOrder({ ...data.order, marketId: selectedMarket });
-        toast.success(`${side === 'buy' ? '🟢 Long' : '🔴 Short'} order placed`);
+      } else if (data.id) {
+        addOpenOrder({
+          id: data.id, side: data.side!, type: data.type!,
+          price: data.price!, size: data.size!, remainingSize: data.remainingSize!,
+          status: data.status!, createdAt: data.createdAt!,
+          marketId: selectedMarket,
+        });
+        toast.success(`${side === 'buy' ? 'Long' : 'Short'} order placed`);
         setSize(''); setPrice('');
       }
     } catch { toast.error('Network error — is the backend running?'); }

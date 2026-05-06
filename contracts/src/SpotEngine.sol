@@ -4,7 +4,6 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "./interfaces/IInterfaces.sol";
 
 /// @title  SpotEngine
@@ -18,7 +17,8 @@ contract SpotEngine is ReentrancyGuard, Ownable {
 
     struct Market {
         address baseToken;
-        address quoteToken;  // always USDC on this DEX
+        address quoteToken;   // always USDC on this DEX
+        uint8   baseDecimals; // decimals of base token (e.g. 18 for ETH, 8 for BTC)
         bool    active;
     }
 
@@ -44,8 +44,8 @@ contract SpotEngine is ReentrancyGuard, Ownable {
     Market[] public markets;
     address public relayer;
 
-    mapping(bytes32 => bool) public filledOrders;
-    mapping(address => uint256) public nonces;
+    // orderhash => amount already filled (in base token atoms)
+    mapping(bytes32 => uint256) public filledAmounts;
 
     uint256 public takerFeeBps = 6;  // 0.06%
     uint256 public makerFeeBps = 1;  // 0.01% rebate
@@ -85,9 +85,9 @@ contract SpotEngine is ReentrancyGuard, Ownable {
 
     // ── Admin ──────────────────────────────────────────────────────────────
 
-    function addMarket(address baseToken, address quoteToken) external onlyOwner returns (uint256 id) {
+    function addMarket(address baseToken, address quoteToken, uint8 baseDecimals) external onlyOwner returns (uint256 id) {
         id = markets.length;
-        markets.push(Market(baseToken, quoteToken, true));
+        markets.push(Market(baseToken, quoteToken, baseDecimals, true));
         emit MarketAdded(id, baseToken, quoteToken);
     }
 
@@ -129,19 +129,28 @@ contract SpotEngine is ReentrancyGuard, Ownable {
 
         bytes32 buyHash  = _hash(buyOrder);
         bytes32 sellHash = _hash(sellOrder);
-        require(!filledOrders[buyHash] && !filledOrders[sellHash], "already filled");
-        require(!cancelledNonces[buyOrder.maker][buyOrder.nonce], "buy nonce cancelled");
+        require(!cancelledNonces[buyOrder.maker][buyOrder.nonce],   "buy nonce cancelled");
         require(!cancelledNonces[sellOrder.maker][sellOrder.nonce], "sell nonce cancelled");
+
+        // Enforce partial-fill tracking: check and update remaining amounts
+        uint256 buyRemaining  = buyOrder.baseAmount  - filledAmounts[buyHash];
+        uint256 sellRemaining = sellOrder.baseAmount - filledAmounts[sellHash];
+        require(buyRemaining  > 0, "buy order fully filled");
+        require(sellRemaining > 0, "sell order fully filled");
+        require(fillBaseAmount <= buyRemaining,  "fill exceeds buy remaining");
+        require(fillBaseAmount <= sellRemaining, "fill exceeds sell remaining");
 
         _verifySignature(buyHash,  buyOrder.maker,  buyerSig);
         _verifySignature(sellHash, sellOrder.maker, sellerSig);
 
-        filledOrders[buyHash]  = true;
-        filledOrders[sellHash] = true;
+        filledAmounts[buyHash]  += fillBaseAmount;
+        filledAmounts[sellHash] += fillBaseAmount;
 
         // Execute at buyer's price (price improvement goes to buyer)
         uint256 execPrice   = buyOrder.price;
-        uint256 quoteAmount = (fillBaseAmount * execPrice) / 1e18;
+        // price is quote-per-base in USDC atoms (1e6); base is in base token atoms (10^baseDecimals)
+        // quoteAmount (USDC atoms) = fillBaseAmount * execPrice / 10^baseDecimals
+        uint256 quoteAmount = (fillBaseAmount * execPrice) / (10 ** uint256(mkt.baseDecimals));
 
         // Taker = buyer (crosses the spread), Maker = seller
         uint256 takerFee = (quoteAmount * takerFeeBps) / 10_000;
