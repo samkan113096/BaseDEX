@@ -5,6 +5,7 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
+  workflow_dispatch:  # allows manual trigger from GitHub Actions UI
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -83,8 +84,9 @@ jobs:
         env:
           NEXT_PUBLIC_ENV: production
           NEXT_PUBLIC_CHAIN_ID: "11155111"
-          NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID }}
-          NEXT_PUBLIC_ETH_SEPOLIA_RPC_URL: ${{ secrets.NEXT_PUBLIC_ETH_SEPOLIA_RPC_URL }}
+          # Falls back to empty string if secret not set — WalletConnect simply won't init
+          NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '' }}
+          NEXT_PUBLIC_ETH_SEPOLIA_RPC_URL: ${{ secrets.NEXT_PUBLIC_ETH_SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com' }}
           NEXT_PUBLIC_BASE_RPC_URL: https://mainnet.base.org
           NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL: https://sepolia.base.org
           NEXT_PUBLIC_VAULT_ADDRESS: ${{ secrets.NEXT_PUBLIC_VAULT_ADDRESS }}

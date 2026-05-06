@@ -6,7 +6,7 @@
 [build]
   # Build from the frontend workspace
   base    = "frontend"
-  command = "npm install && npm run build"
+  command = "npm ci && npm run build"
   # publish is relative to base (frontend/), so .next resolves to frontend/.next
   publish = ".next"
 

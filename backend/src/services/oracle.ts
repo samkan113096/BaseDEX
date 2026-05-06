@@ -47,7 +47,7 @@ export class PriceOracle extends EventEmitter {
 
   start() {
     void this._poll();
-    this.timer = setInterval(() => void this._poll(), 60_000);
+    this.timer = setInterval(() => void this._poll(), 15_000);
   }
 
   stop() { if (this.timer) clearInterval(this.timer); }
