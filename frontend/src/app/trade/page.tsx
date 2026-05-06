@@ -82,7 +82,7 @@ export default function TradePage() {
           {/* Recent trades — fixed height at bottom */}
           <div className="h-[196px] shrink-0 border-t border-[#1a1a35] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-3 h-9 border-b border-[#1a1a35] shrink-0">
-              <span className="text-[10px] font-bold text-[#4a5068] uppercase tracking-widest">Recent Trades</span>
+              <span className="text-[10px] font-bold text-[#8890a8] uppercase tracking-widest">Recent Trades</span>
             </div>
             <div className="flex-1 overflow-hidden">
               <RecentTrades />

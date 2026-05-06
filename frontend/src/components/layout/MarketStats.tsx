@@ -110,7 +110,7 @@ export function MarketStats() {
 function Stat({ label, value, valueClass = 'text-[#c8d0e0]' }: { label: string; value: string; valueClass?: string }) {
   return (
     <div className="flex flex-col justify-center px-3.5 shrink-0 h-full gap-0.5">
-      <span className="text-[9px] text-[#3a3e58] uppercase tracking-[0.1em] font-bold">{label}</span>
+      <span className="text-[9px] text-[#6a7090] uppercase tracking-[0.1em] font-bold">{label}</span>
       <span className={`text-[12px] font-semibold font-mono leading-none ${valueClass}`}>{value}</span>
     </div>
   );

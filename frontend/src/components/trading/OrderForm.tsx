@@ -389,7 +389,7 @@ function NumberInput({ value, onChange, placeholder, right, onMarkPrice }: {
 function Row({ label, value, valueClass = 'text-[#8890a8]' }: { label: string; value: string; valueClass?: string }) {
   return (
     <div className="flex justify-between items-center">
-      <span className="text-[10px] text-[#2a2e48]">{label}</span>
+      <span className="text-[10px] text-[#6a7090]">{label}</span>
       <span className={`text-[11px] font-mono font-medium ${valueClass}`}>{value}</span>
     </div>
   );

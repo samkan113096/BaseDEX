@@ -55,7 +55,7 @@ export function OrderBook() {
 
       {/* Header */}
       <div className="flex items-center justify-between px-3 h-9 border-b border-[#1a1a35] shrink-0">
-        <span className="text-[10px] font-bold text-[#4a5068] uppercase tracking-widest">Order Book</span>
+        <span className="text-[10px] font-bold text-[#8890a8] uppercase tracking-widest">Order Book</span>
         <div className="flex gap-0.5">
           {(['both', 'bids', 'asks'] as View[]).map(v => (
             <button
@@ -80,7 +80,7 @@ export function OrderBook() {
       </div>
 
       {/* Column labels */}
-      <div className="grid grid-cols-3 px-3 py-1.5 text-[9px] font-bold text-[#2a2e48] uppercase tracking-[0.1em] border-b border-[#1a1a35] shrink-0">
+      <div className="grid grid-cols-3 px-3 py-1.5 text-[9px] font-bold text-[#6a7090] uppercase tracking-[0.1em] border-b border-[#1a1a35] shrink-0">
         <span>Price</span>
         <span className="text-right">{base}</span>
         <span className="text-right">Total</span>
@@ -100,8 +100,8 @@ export function OrderBook() {
                   style={{ width: `${pct}%` }}
                 />
                 <span className="text-red-400 font-mono z-10 text-[11px]">{fmtPrice(level.price)}</span>
-                <span className="text-[#8890a8] font-mono text-right z-10 text-[10px]">{fmtSize(level.size)}</span>
-                <span className="text-[#4a5068] font-mono text-right z-10 text-[10px]">
+                <span className="text-[#a0a8c0] font-mono text-right z-10 text-[10px]">{fmtSize(level.size)}</span>
+                <span className="text-[#7a8099] font-mono text-right z-10 text-[10px]">
                   {total >= 1000 ? `${(total / 1000).toFixed(1)}K` : total.toFixed(0)}
                 </span>
               </div>
@@ -117,7 +117,7 @@ export function OrderBook() {
             ${markPrice.toLocaleString(undefined, { minimumFractionDigits: isSmall ? 4 : 2, maximumFractionDigits: isSmall ? 5 : 2 })}
           </span>
           {spread && (
-            <span className="text-[9px] text-[#2a2e48] font-mono">
+            <span className="text-[9px] text-[#6a7090] font-mono">
               {spread.pct}%
             </span>
           )}
@@ -137,8 +137,8 @@ export function OrderBook() {
                   style={{ width: `${pct}%` }}
                 />
                 <span className="text-emerald-400 font-mono z-10 text-[11px]">{fmtPrice(level.price)}</span>
-                <span className="text-[#8890a8] font-mono text-right z-10 text-[10px]">{fmtSize(level.size)}</span>
-                <span className="text-[#4a5068] font-mono text-right z-10 text-[10px]">
+                <span className="text-[#a0a8c0] font-mono text-right z-10 text-[10px]">{fmtSize(level.size)}</span>
+                <span className="text-[#7a8099] font-mono text-right z-10 text-[10px]">
                   {total >= 1000 ? `${(total / 1000).toFixed(1)}K` : total.toFixed(0)}
                 </span>
               </div>
