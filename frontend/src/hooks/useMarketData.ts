@@ -3,32 +3,43 @@
 import { useEffect, useRef } from 'react';
 import { useDEXStore, TIMEFRAME_INTERVALS } from '@/store/dex';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:3001/ws';
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+/**
+ * When NEXT_PUBLIC_API_URL is set, we call that separate backend.
+ * When it is unset (Netlify deploy), we call the built-in Next.js API routes
+ * via relative paths — no external server required.
+ */
+const RAW_API = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
+const API_URL = RAW_API;                           // '' → relative paths like /api/...
+const WS_URL  = process.env.NEXT_PUBLIC_WS_URL;   // undefined → polling-only mode
+
+function apiPath(path: string) {
+  // path must start with /
+  return API_URL ? `${API_URL}${path}` : path;
+}
 
 export function useMarketDataSocket() {
-  const ws  = useRef<WebSocket | null>(null);
+  const ws    = useRef<WebSocket | null>(null);
   const store = useDEXStore();
 
-  // Load candles via REST when market/timeframe changes
+  // ── 1. Candles + Trades when market/timeframe changes ─────────────────
   useEffect(() => {
     const interval = TIMEFRAME_INTERVALS[store.selectedTimeframe];
-    fetch(`${API_URL}/api/candles/${store.selectedMarket}?interval=${interval}&limit=300`)
+    fetch(apiPath(`/api/candles/${store.selectedMarket}?timeframe=${store.selectedTimeframe}&interval=${interval}&limit=300`))
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(data => { if (Array.isArray(data)) store.setCandles(data); })
       .catch(() => {});
 
-    fetch(`${API_URL}/api/trades/${store.selectedMarket}?limit=50`)
+    fetch(apiPath(`/api/trades/${store.selectedMarket}?limit=50`))
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(data => { if (Array.isArray(data)) store.setRecentTrades(data); })
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [store.selectedMarket, store.selectedTimeframe]);
 
-  // Fetch prices from REST (initial + periodic refresh every 30s)
+  // ── 2. Prices — initial load + polling every 15 s ─────────────────────
   useEffect(() => {
     function loadPrices() {
-      fetch(`${API_URL}/api/prices`)
+      fetch(apiPath('/api/prices'))
         .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
         .then((data: Record<string, { price: number; change24h: number; high24h: number; low24h: number }>) => {
           for (const [sym, info] of Object.entries(data)) {
@@ -38,18 +49,47 @@ export function useMarketDataSocket() {
         .catch(() => {});
     }
     loadPrices();
-    const interval = setInterval(loadPrices, 30_000);
-    return () => clearInterval(interval);
+    const id = setInterval(loadPrices, 15_000);
+    return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // WebSocket for real-time
+  // ── 3. Order-book polling (every 2 s) — always active ─────────────────
   useEffect(() => {
+    function loadBook() {
+      fetch(apiPath(`/api/orderbook/${store.selectedMarket}`))
+        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+        .then((data: { bids: { price: string; size: string; count: number }[]; asks: typeof data.bids }) => {
+          if (data?.bids && data?.asks) store.setOrderBook(data.bids, data.asks);
+        })
+        .catch(() => {});
+    }
+    loadBook();
+    const id = setInterval(loadBook, 2_000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store.selectedMarket]);
+
+  // ── 4. Recent trades polling (every 5 s) ──────────────────────────────
+  useEffect(() => {
+    const id = setInterval(() => {
+      fetch(apiPath(`/api/trades/${store.selectedMarket}?limit=50`))
+        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+        .then(data => { if (Array.isArray(data)) store.setRecentTrades(data); })
+        .catch(() => {});
+    }, 5_000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store.selectedMarket]);
+
+  // ── 5. Optional WebSocket — only if WS_URL is explicitly configured ────
+  useEffect(() => {
+    if (!WS_URL) return; // no WS on Netlify, polling handles everything above
     let alive = true;
     let reconnectTimer: NodeJS.Timeout;
 
     function connect() {
-      const socket = new WebSocket(WS_URL);
+      const socket = new WebSocket(WS_URL!);
       ws.current   = socket;
 
       socket.onopen = () => {

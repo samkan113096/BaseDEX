@@ -20,9 +20,11 @@ contract MockToken is ERC20 {
 }
 
 contract Deploy is Script {
-    // ── Base Sepolia canonical tokens ─────────────────────────
-    address constant USDC = 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
-    address constant WETH = 0x4200000000000000000000000000000000000006;
+    // ── Ethereum Sepolia canonical tokens ─────────────────────
+    // USDC: Circle's official Sepolia USDC
+    address constant USDC = 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238;
+    // WETH: Sepolia WETH (UniV2-compatible)
+    address constant WETH = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
 
     function run() external {
         uint256 deployerPk = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -108,7 +110,7 @@ contract Deploy is Script {
 
         // ── Output addresses ───────────────────────────────────
         console.log("=== BaseDEX Testnet Deployment ===");
-        console.log("Network    : Base Sepolia (84532)");
+        console.log("Network    : Ethereum Sepolia (11155111)");
         console.log("Deployer   :", deployer);
         console.log("");
         console.log("PriceFeed  :", address(priceFeed));
