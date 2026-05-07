@@ -1,0 +1,5 @@
+# Ignore everything except what's needed to build
+node_modules
+dist
+.env
+*.log
