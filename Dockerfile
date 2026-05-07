@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy backend package files and install
 COPY backend/package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copy backend source and build
 COPY backend/ ./
@@ -18,7 +18,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY backend/package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 COPY --from=builder /app/dist ./dist
 
