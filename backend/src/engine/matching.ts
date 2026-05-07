@@ -132,18 +132,26 @@ export class MatchingEngine extends EventEmitter {
     }
     this.rollingTrades.sort((a, b) => a.timestamp - b.timestamp);
 
-    // Seed 300 candles of 1-minute history
+    // Seed 300 candles of 1-minute history — walk BACKWARDS from current price
+    // so the most-recent candle ends exactly at midPrice (no gap/spike on the chart)
     const mktCandles = this.candles.get(marketId)!;
-    let candlePrice = midPrice * 0.95;
-    const now       = Math.floor(Date.now() / 60_000) * 60;
+    const now        = Math.floor(Date.now() / 60_000) * 60;
+    const volScale   = midPrice > 1000 ? 0.01 : 1;
+
+    // Build prices array backwards: prices[0]=oldest, prices[299]=current
+    const prices: number[] = new Array(300);
+    prices[299] = midPrice;
+    for (let j = 298; j >= 0; j--) {
+      prices[j] = prices[j + 1] * (1 + (Math.random() - 0.5) * 0.004);
+    }
+
     for (let j = 299; j >= 0; j--) {
-      candlePrice += (Math.random() - 0.49) * midPrice * 0.002;
-      const open   = candlePrice;
-      const close  = candlePrice + (Math.random() - 0.5) * midPrice * 0.002;
+      const p      = prices[j];
+      const open   = p * (1 + (Math.random() - 0.5) * 0.001);
+      const close  = j === 299 ? midPrice : prices[j + 1];  // each candle closes at next open
       const high   = Math.max(open, close) * (1 + Math.random() * 0.001);
       const low    = Math.min(open, close) * (1 - Math.random() * 0.001);
-      const volume = (50 + Math.random() * 500) * (midPrice > 1000 ? 0.01 : 1);
-      candlePrice  = close;
+      const volume = (50 + Math.random() * 500) * volScale;
 
       for (const interval of CANDLE_INTERVALS) {
         const aligned = Math.floor((now - j * 60) / interval) * interval;

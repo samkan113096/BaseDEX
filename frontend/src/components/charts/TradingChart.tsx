@@ -8,29 +8,35 @@ import { apiPath } from '@/lib/api';
 
 const TIMEFRAMES: Timeframe[] = ['1m', '5m', '15m', '1h', '4h', '1d'];
 
-/** Generate deterministic seed candles so the chart is never blank on load */
+/**
+ * Generate seed candles walking BACKWARDS from `price` so the rightmost
+ * candle always closes at the current live price (no gap/spike).
+ * Uses a deterministic LCG so the shape is stable across re-renders.
+ */
 function seedCandles(price: number, interval: number, count = 200) {
-  const now   = Math.floor(Date.now() / 1000);
-  const start = now - interval * count;
-  const out   = [];
-  // Seeded pseudo-random walk (deterministic)
-  const primes = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47];
-  let p = price * 0.97;
-  for (let i = 0; i < count; i++) {
-    const seed  = (primes[i % primes.length] * (i + 1)) % 100;
-    const move  = (seed - 50) / 50 * price * 0.004;
-    const open  = p;
-    p = Math.max(p + move, price * 0.7);
-    const close = p;
-    const hi    = Math.max(open, close) * (1 + (primes[(i+3) % primes.length] % 10) / 2000);
-    const lo    = Math.min(open, close) * (1 - (primes[(i+5) % primes.length] % 10) / 2000);
-    const vol   = (0.5 + (primes[(i+7) % primes.length] % 20) / 10) * (price > 1000 ? 0.05 : price > 100 ? 0.5 : 50);
-    out.push({ time: start + i * interval, open, high: hi, low: lo, close, volume: vol });
+  const now      = Math.floor(Date.now() / 1000);
+  const volScale = price > 1000 ? 0.05 : price > 100 ? 0.5 : 50;
+
+  // Build closing prices backwards from current price
+  const closes = new Array<number>(count);
+  closes[count - 1] = price;
+  let lcg = 1_664_525 * Math.round(price * 1000) + 1_013_904_223; // seeded LCG
+  for (let i = count - 2; i >= 0; i--) {
+    lcg = (Math.imul(1_664_525, lcg) + 1_013_904_223) >>> 0;
+    const pct     = ((lcg & 0xff) / 255 - 0.5) * 0.008; // ±0.4% per candle
+    closes[i]     = closes[i + 1] * (1 + pct);
   }
-  // Pin last candle to current price
-  const last = out[out.length - 1];
-  if (last) { last.close = price; last.high = Math.max(last.high, price); }
-  return out;
+
+  return closes.map((close, i) => {
+    const open = i === 0 ? close * (1 + ((lcg & 0xf) - 8) / 2000) : closes[i - 1];
+    lcg = (Math.imul(1_664_525, lcg) + 1_013_904_223) >>> 0;
+    const hi  = Math.max(open, close) * (1 + (lcg & 0xff) / 255 * 0.002);
+    lcg = (Math.imul(1_664_525, lcg) + 1_013_904_223) >>> 0;
+    const lo  = Math.min(open, close) * (1 - (lcg & 0xff) / 255 * 0.002);
+    lcg = (Math.imul(1_664_525, lcg) + 1_013_904_223) >>> 0;
+    const vol = (0.3 + (lcg & 0xff) / 255 * 1.4) * volScale;
+    return { time: now - (count - 1 - i) * interval, open, high: hi, low: lo, close, volume: vol };
+  });
 }
 
 export function TradingChart() {
@@ -90,12 +96,14 @@ export function TradingChart() {
       });
 
       const candleSeries = chart.addSeries(CandlestickSeries, {
-        upColor:         '#10b981',
-        downColor:       '#ef4444',
-        borderUpColor:   '#10b981',
-        borderDownColor: '#ef4444',
-        wickUpColor:     '#10b981',
-        wickDownColor:   '#ef4444',
+        upColor:         '#22d3a0',
+        downColor:       '#f43f5e',
+        borderUpColor:   '#22d3a0',
+        borderDownColor: '#f43f5e',
+        wickUpColor:     '#22d3a0',
+        wickDownColor:   '#f43f5e',
+        borderVisible:   true,
+        wickVisible:     true,
       });
 
       const volumeSeries = chart.addSeries(HistogramSeries, {
@@ -103,7 +111,7 @@ export function TradingChart() {
         priceScaleId: 'volume',
       });
       chart.priceScale('volume').applyOptions({
-        scaleMargins: { top: 0.82, bottom: 0 },
+        scaleMargins: { top: 0.80, bottom: 0 },
       });
 
       chartRef.current  = chart;

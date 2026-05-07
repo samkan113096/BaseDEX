@@ -98,8 +98,15 @@ export function registerApiRoutes(app: FastifyInstance) {
             [marketId, interval, limit],
           );
           if (res.rows.length >= 10) {
-            // Return chronological order (oldest first) for chart rendering
-            return res.rows.reverse();
+            const rows = res.rows.reverse(); // chronological (oldest first)
+            // Coherence check: if the last DB candle's close is more than 8% away
+            // from the current live price, the candles are stale seed data — use
+            // the in-memory engine's fresh seed instead.
+            const lastClose = parseFloat(rows[rows.length - 1].close);
+            const livePrice = latestPrices[marketId.split('-')[0]] ?? lastClose;
+            const drift     = Math.abs(lastClose - livePrice) / livePrice;
+            if (drift < 0.08) return rows;
+            // Stale data detected — fall through to fresh in-memory seed below
           }
         } catch { /* fall through */ }
       }
